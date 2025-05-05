@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Edit Profile - SASUCare Shop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .page-container {
+            background-color: #f8f9fa;
+            padding: 50px 0;
+            min-height: 600px;
+        }
+        
+        .profile-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+        
+        .profile-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .profile-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .profile-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .profile-section {
+            margin-bottom: 30px;
+        }
+        
+        .profile-section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .form-label {
+            font-weight: 500;
+            color: #333;
+        }
+        
+        .profile-action-button {
+            background-color: #3366ff;
+            color: white;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            font-size: 0.95rem;
+        }
+        
+        .profile-action-button:hover {
+            background-color: #2952cc;
+            color: white;
+        }
+        
+        .profile-cancel-button {
+            background-color: #eee;
+            color: #333;
+            padding: 8px 16px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.95rem;
+        }
+        
+        .profile-cancel-button:hover {
+            background-color: #ddd;
+            color: #333;
+            text-decoration: none;
+        }
+        
+        .profile-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .profile-tab {
+            margin-right: 20px;
+            padding-bottom: 10px;
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+        }
+        
+        .profile-tab.active {
+            color: #3366ff;
+        }
+        
+        .profile-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #3366ff;
+        }
+        
+        .avatar-container {
+            position: relative;
+            width: 120px;
+            height: 120px;
+            margin-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 3px solid #3366ff;
+        }
+        
+        .avatar-edit {
+            position: absolute;
+            right: 0;
+            bottom: 0;
+            background-color: #3366ff;
+            color: white;
+            width: 34px;
+            height: 34px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            cursor: pointer;
+            transition: background-color 0.2s;
+        }
+        
+        .avatar-edit:hover {
+            background-color: #2952cc;
+        }
+        
+        .hidden-file-input {
+            display: none;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header th:replace="fragments/header :: header"></header>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${info}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <span th:text="${info}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <span th:text="${warning}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    
+    <!-- Edit Profile Content -->
+    <div class="page-container">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 mb-4">
+                    <!-- Sidebar Menu -->
+                    <div class="profile-container">
+                        <div class="profile-tabs d-block">
+                            <a href="/account/profile" class="d-block profile-tab active mb-3">
+                                <i class="fas fa-user-circle me-2"></i> My Profile
+                            </a>
+                            <a href="/account/orders" class="d-block profile-tab mb-3">
+                                <i class="fas fa-shopping-bag me-2"></i> My Orders
+                            </a>
+                            <a href="/account/password" class="d-block profile-tab mb-3">
+                                <i class="fas fa-key me-2"></i> Change Password
+                            </a>
+                            <!-- Show if user has SELLER role -->
+                            <a th:if="${#authorization.expression('hasRole(''SELLER'')')}" href="/seller/dashboard" class="d-block profile-tab mb-3">
+                                <i class="fas fa-store me-2"></i> Seller Dashboard
+                            </a>
+                            <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();" class="d-block profile-tab mb-3">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a>
+                            <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-9">
+                    <!-- Edit Profile Form -->
+                    <div class="profile-container">
+                        <div class="profile-header">
+                            <h1 class="profile-title">Edit Profile</h1>
+                            <p class="profile-subtitle">Update your personal information</p>
+                        </div>
+                        
+                        <form th:action="@{/account/profile/update}" method="post" enctype="multipart/form-data" th:object="${user}">
+                            <!-- Avatar Upload -->
+                            <div class="d-flex justify-content-center mb-4">
+                                <div class="avatar-container">
+                                    <img id="avatar-preview" src="https://via.placeholder.com/200x200?text=Avatar" alt="User Avatar" class="profile-avatar">
+                                    <label for="profileImage" class="avatar-edit">
+                                        <i class="fas fa-camera"></i>
+                                    </label>
+                                    <input type="file" id="profileImage" name="profileImage" class="hidden-file-input" accept="image/*">
+                                </div>
+                            </div>
+                            
+                            <!-- Personal Information -->
+                            <div class="profile-section">
+                                <h2 class="profile-section-title">Personal Information</h2>
+                                
+                                <div class="row mb-3">
+                                    <div class="col-md-6">
+                                        <label for="firstName" class="form-label">First Name</label>
+                                        <input type="text" class="form-control" id="firstName" name="firstName" th:field="*{firstName}" required>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}">Please provide your first name.</div>
+                                    </div>
+                                    <div class="col-md-6">
+                                        <label for="lastName" class="form-label">Last Name</label>
+                                        <input type="text" class="form-control" id="lastName" name="lastName" th:field="*{lastName}" required>
+                                        <div class="invalid-feedback" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}">Please provide your last name.</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="mb-3">
+                                    <label for="email" class="form-label">Email</label>
+                                    <input type="email" class="form-control" id="email" th:field="*{email}" readonly disabled>
+                                    <small class="text-muted">Email cannot be changed</small>
+                                </div>
+                            </div>
+                            
+                            <!-- Shop Information - only shown for SELLERS -->
+                            <div class="profile-section" th:if="${#authorization.expression('hasRole(''SELLER'')')}">
+                                <h2 class="profile-section-title">Shop Information</h2>
+                                
+                                <div class="mb-3">
+                                    <label for="shopName" class="form-label">Shop Name</label>
+                                    <input type="text" class="form-control" id="shopName" name="shopName" th:field="*{shopName}">
+                                </div>
+                            </div>
+                            
+                            <!-- Form Actions -->
+                            <div class="d-flex justify-content-end gap-2 mt-4">
+                                <a th:href="@{/account/profile}" class="profile-cancel-button">Cancel</a>
+                                <button type="submit" class="profile-action-button">
+                                    <i class="fas fa-save me-1"></i> Save Changes
+                                </button>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer th:replace="fragments/footer :: footer"></footer>
+    
+    <!-- Scripts -->
+    <div th:replace="fragments/footer :: scripts"></div>
+    
+    <script>
+        // Preview uploaded avatar
+        document.getElementById('profileImage').addEventListener('change', function(e) {
+            if (e.target.files.length > 0) {
+                var file = e.target.files[0];
+                var reader = new FileReader();
+                
+                reader.onload = function(e) {
+                    document.getElementById('avatar-preview').setAttribute('src', e.target.result);
+                }
+                
+                reader.readAsDataURL(file);
+            }
+        });
+    </script>
+</body>
+</html>

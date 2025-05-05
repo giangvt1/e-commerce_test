@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CYO Shop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .page-container {
+            background-color: #f8f9fa;
+            padding: 20px 0 40px;
+        }
+        
+        .hero-banner {
+            background-color: #f8f9fa;
+            padding: 60px 0;
+            border-bottom: 1px solid #eaeaea;
+        }
+        
+        .banner-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 1.5rem;
+            color: #333;
+        }
+        
+        .banner-text {
+            font-size: 1.1rem;
+            color: #666;
+            margin-bottom: 2rem;
+            line-height: 1.6;
+        }
+        
+        .banner-button {
+            padding: 0.6rem 1.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            border-radius: 4px;
+        }
+        
+        .banner-image {
+            border-radius: 8px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        }
+        
+        .section-title {
+            text-align: center;
+            font-weight: 600;
+            margin-bottom: 25px;
+            position: relative;
+            padding-bottom: 10px;
+            text-transform: uppercase;
+            font-size: 1.4rem;
+        }
+        
+        .section-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 50px;
+            height: 3px;
+            background-color: #3366ff;
+        }
+        
+        .category-pills {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 30px;
+            flex-wrap: wrap;
+            gap: 8px;
+        }
+        
+        .category-pill {
+            background-color: white;
+            border: 1px solid #dee2e6;
+            border-radius: 4px;
+            padding: 6px 16px;
+            font-size: 14px;
+            cursor: pointer;
+            transition: all 0.2s;
+            color: #333;
+            text-decoration: none;
+            margin: 0 3px;
+        }
+        
+        .category-pill:hover,
+        .category-pill.active {
+            background-color: #3366ff;
+            color: white;
+            border-color: #3366ff;
+        }
+        
+        .product-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(270px, 1fr));
+            gap: 25px;
+        }
+        
+        .product-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+            transition: transform 0.3s;
+            position: relative;
+        }
+        
+        .product-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-image {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+        
+        .product-details {
+            padding: 15px;
+        }
+        
+        .product-title {
+            font-weight: 600;
+            margin-bottom: 8px;
+            font-size: 16px;
+            color: #333;
+            text-decoration: none;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+            min-height: 42px;
+        }
+        
+        .product-title:hover {
+            color: #3366ff;
+        }
+        
+        .product-price {
+            color: #3366ff;
+            font-weight: 700;
+            font-size: 16px;
+            margin-bottom: 8px;
+        }
+        
+        .product-description {
+            color: #6c757d;
+            font-size: 14px;
+            margin-bottom: 10px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            display: -webkit-box;
+            -webkit-line-clamp: 2;
+            -webkit-box-orient: vertical;
+        }
+        
+        .stock-meta {
+            display: flex;
+            justify-content: space-between;
+            border-top: 1px solid #eee;
+            padding-top: 10px;
+            margin-top: 5px;
+            align-items: center;
+        }
+        
+        .stock-status {
+            display: flex;
+            align-items: center;
+            color: #28a745;
+            font-size: 14px;
+        }
+        
+        .stock-status i {
+            margin-right: 5px;
+        }
+        
+        .out-of-stock {
+            color: #dc3545;
+        }
+        
+        .view-button {
+            background-color: #3366ff;
+            color: white;
+            border: none;
+            padding: 5px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+            display: flex;
+            align-items: center;
+            text-decoration: none;
+        }
+        
+        .view-button:hover {
+            background-color: #2952cc;
+            color: white;
+        }
+        
+        .view-button i {
+            margin-right: 5px;
+        }
+        
+        .badge-new {
+            position: absolute;
+            top: 10px;
+            right: 10px;
+            background-color: #ff4c4c;
+            color: white;
+            font-size: 12px;
+            font-weight: 600;
+            padding: 4px 10px;
+            border-radius: 3px;
+            z-index: 2;
+        }
+        
+        .no-products {
+            text-align: center;
+            padding: 40px 20px;
+            background-color: white;
+            border-radius: 8px;
+            margin-top: 20px;
+            box-shadow: 0 3px 10px rgba(0, 0, 0, 0.08);
+        }
+        
+        .no-products i {
+            font-size: 3rem;
+            color: #dee2e6;
+            margin-bottom: 15px;
+        }
+        
+        .no-products h3 {
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .no-products p {
+            color: #6c757d;
+            margin-bottom: 20px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header th:replace="fragments/header :: header"></header>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${info}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <span th:text="${info}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <span th:text="${warning}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    
+    <!-- Banner Section -->
+    <div class="hero-banner mb-5">
+        <div class="container">
+            <div class="row align-items-center">
+                <div class="col-md-6">
+                    <h1 class="banner-title">Welcome to CYO Shop</h1>
+                    <p class="banner-text">Discover amazing products from our curated collection. Quality items for every need.</p>
+                    <a href="#products" class="btn btn-primary banner-button">Shop Now</a>
+                </div>
+                <div class="col-md-6 text-center">
+                    <img src="/uploads/f95b7628-9b04-4d89-9dbe-e20a7386ebd1.jpg" alt="SASUCare Banner" class="img-fluid banner-image">
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Main Content -->
+    <div class="page-container" id="products">
+        <div class="container">
+            <!-- Page Title -->
+            <h2 class="section-title">OUR PRODUCTS</h2>
+            
+            <!-- Category Pills -->
+            <div class="category-pills">
+                <a th:href="@{/home}" class="category-pill" th:classappend="${selectedCategoryId == null ? 'active' : ''}">All</a>
+                <a th:each="category : ${categories}" th:href="@{/home(categoryId=${category.id})}" 
+                   class="category-pill" th:classappend="${selectedCategoryId != null && selectedCategoryId == category.id ? 'active' : ''}"
+                   th:text="${category.name}">Category Name</a>
+            </div>
+            
+            <!-- No Products Message -->
+            <div class="no-products" th:if="${#lists.isEmpty(products)}">
+                <i class="fas fa-box-open"></i>
+                <h3>No Products Available</h3>
+                <p>We're currently updating our inventory. Please check back soon for new products!</p>
+                <a th:href="@{/register-seller}" class="btn btn-primary mt-3">Become a Seller</a>
+            </div>
+            
+            <!-- Products Grid -->
+            <div class="row" th:if="${not #lists.isEmpty(products)}">
+                <div th:each="product : ${products}" class="col-md-6 col-lg-4 col-xl-3 mb-4">
+                    <div class="product-card">
+                        <!-- New Badge -->
+                        <div th:if="${product.badgeText}" class="badge-new" th:text="${product.badgeText}">New</div>
+                        
+                        <!-- Product Image -->
+                        <img th:if="${product.imageUrl}" th:src="${product.imageUrl}" class="product-image" th:alt="${product.name}">
+                        <img th:unless="${product.imageUrl}" src="https://via.placeholder.com/300x300?text=No+Image" class="product-image" th:alt="${product.name}">
+                        
+                        <!-- Product Details -->
+                        <div class="product-details">
+                            <a th:href="@{'/product/' + ${product.id}}" class="product-title" th:text="${product.name}">Product Name</a>
+                            <div class="product-price" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</div>
+                            <div class="product-description" th:text="${product.description != null ? product.description : 'No description available'}">Product description goes here...</div>
+                            
+                            <!-- Stock Info & Action Button -->
+                            <div class="stock-meta">
+                                <div class="stock-status" th:classappend="${product.stockQuantity > 0 ? '' : 'out-of-stock'}">
+                                    <i th:class="${product.stockQuantity > 0 ? 'fas fa-check-circle' : 'fas fa-times-circle'}"></i>
+                                    <span th:text="${product.stockQuantity > 0 ? 'In Stock' : 'Out of Stock'}">In Stock</span>
+                                </div>
+                                <a th:href="@{'/product/' + ${product.id}}" class="view-button">
+                                    <i class="fas fa-eye"></i> View
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer th:replace="fragments/footer :: footer"></footer>
+    
+    <!-- Scripts -->
+    <div th:replace="fragments/footer :: scripts"></div>
+</body>
+</html>

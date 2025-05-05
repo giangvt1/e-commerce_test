@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Shop Owner Registration</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        .password-strength {
+            height: 5px;
+            margin-top: 5px;
+            margin-bottom: 10px;
+            background-color: #eee;
+        }
+        .password-strength-bar {
+            height: 100%;
+            width: 0;
+            background-color: #dc3545;
+            transition: width 0.3s, background-color 0.3s;
+        }
+        .social-login-btn {
+            width: 100%;
+            margin-bottom: 10px;
+            text-align: left;
+            font-weight: 500;
+        }
+        .social-login-btn i {
+            margin-right: 10px;
+        }
+        .form-check-input:checked {
+            background-color: #0d6efd;
+            border-color: #0d6efd;
+        }
+    </style>
+</head>
+<body class="bg-light">
+    <div class="container py-5">
+        <div class="row justify-content-center">
+            <div class="col-md-8 col-lg-6">
+                <div class="card shadow-lg border-0 rounded-lg">
+                    <div class="card-header bg-primary text-white text-center py-4">
+                        <h2 class="mb-0">Shop Owner Registration</h2>
+                        <p class="mt-2 mb-0">Create your shop account to start selling</p>
+                    </div>
+                    <div class="card-body p-4">
+                        <!-- Error message for unique email violation -->
+                        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+                            <span th:text="${error}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        
+                        <!-- Success message -->
+                        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+                            <span th:text="${success}"></span>
+                            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                        </div>
+                        
+                        <!-- Registration Form -->
+                        <form th:action="@{/register-seller}" method="post" th:object="${user}">
+                            <div class="row mb-3">
+                                <div class="col-md-6">
+                                    <label for="firstName" class="form-label">First Name</label>
+                                    <input type="text" class="form-control" id="firstName" th:field="*{firstName}" required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('firstName')}" th:errors="*{firstName}"></div>
+                                </div>
+                                <div class="col-md-6">
+                                    <label for="lastName" class="form-label">Last Name</label>
+                                    <input type="text" class="form-control" id="lastName" th:field="*{lastName}" required>
+                                    <div class="text-danger" th:if="${#fields.hasErrors('lastName')}" th:errors="*{lastName}"></div>
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="shopName" class="form-label">Shop Name</label>
+                                <input type="text" class="form-control" id="shopName" th:field="*{shopName}" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('shopName')}" th:errors="*{shopName}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="email" class="form-label">Email Address</label>
+                                <input type="email" class="form-control" id="email" th:field="*{email}" required>
+                                <div class="text-danger" th:if="${#fields.hasErrors('email')}" th:errors="*{email}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="password" class="form-label">Password</label>
+                                <input type="password" class="form-control" id="password" th:field="*{password}" 
+                                    onkeyup="checkPasswordStrength(this.value)" required>
+                                <div class="password-strength">
+                                    <div class="password-strength-bar" id="passwordStrengthBar"></div>
+                                </div>
+                                <div class="text-danger" th:if="${#fields.hasErrors('password')}" th:errors="*{password}"></div>
+                            </div>
+                            
+                            <div class="mb-3">
+                                <label for="confirmPassword" class="form-label">Confirm Password</label>
+                                <input type="password" class="form-control" id="confirmPassword" name="confirmPassword" required>
+                                <div class="text-danger" id="passwordMatchError" style="display: none;">
+                                    Passwords do not match
+                                </div>
+                            </div>
+                            
+                            <div class="mb-3 form-check">
+                                <input type="checkbox" class="form-check-input" id="agreeTerms" name="agreeTerms" required>
+                                <label class="form-check-label" for="agreeTerms">
+                                    I agree to the <a href="#" data-bs-toggle="modal" data-bs-target="#termsModal">Terms of Service</a>
+                                    and <a href="#" data-bs-toggle="modal" data-bs-target="#privacyModal">Privacy Policy</a>
+                                </label>
+                            </div>
+                            
+                            <div class="d-grid gap-2">
+                                <button type="submit" class="btn btn-primary btn-lg">Create Shop Account</button>
+                            </div>
+                        </form>
+                        
+                        <div class="text-center mt-3">
+                            <p>Already have an account? <a th:href="@{/login}" class="fw-semibold">Sign In</a></p>
+                            <p>Want to register as a customer instead? <a th:href="@{/register}" class="fw-semibold">Customer Registration</a></p>
+                        </div>
+                        
+                        <div class="mt-4">
+                            <div class="text-center mb-3">
+                                <span class="bg-white px-2 text-muted">OR SIGN UP WITH</span>
+                            </div>
+                            <div class="d-grid gap-2 mb-3">
+                                <button class="btn btn-outline-primary social-login-btn">
+                                    <i class="fab fa-google"></i> Sign up with Google
+                                </button>
+                                <button class="btn btn-outline-primary social-login-btn">
+                                    <i class="fab fa-facebook"></i> Sign up with Facebook
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Terms Modal -->
+    <div class="modal fade" id="termsModal" tabindex="-1" aria-labelledby="termsModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="termsModalLabel">Terms of Service</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Terms for Shop Owners</h6>
+                    <p>By using the SASUCare platform as a shop owner, you agree to the following terms:</p>
+                    <ol>
+                        <li>You are responsible for maintaining the accuracy of your shop information</li>
+                        <li>All products listed must comply with our content guidelines</li>
+                        <li>You agree to process orders in a timely manner</li>
+                        <li>Payment processing fees may apply to your transactions</li>
+                        <li>You must respond to customer inquiries within 48 hours</li>
+                    </ol>
+                    <!-- More terms here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Privacy Modal -->
+    <div class="modal fade" id="privacyModal" tabindex="-1" aria-labelledby="privacyModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-scrollable">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="privacyModalLabel">Privacy Policy</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <h6>Privacy for Shop Owners</h6>
+                    <p>This privacy policy outlines how we collect, use, and protect your information:</p>
+                    <ul>
+                        <li>We collect your business information to create your seller profile</li>
+                        <li>Your shop analytics are visible only to you and our administrators</li>
+                        <li>Customer information shared with you must be treated confidentially</li>
+                        <li>We may use aggregated shop data for platform improvements</li>
+                        <li>Payment information is processed securely through our payment providers</li>
+                    </ul>
+                    <!-- More privacy policy here -->
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0-alpha1/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // Check password strength
+        function checkPasswordStrength(password) {
+            const strengthBar = document.getElementById('passwordStrengthBar');
+            let strength = 0;
+            
+            // If password is empty, reset strength bar
+            if (password.length === 0) {
+                strengthBar.style.width = '0%';
+                strengthBar.style.backgroundColor = '#dc3545';
+                return;
+            }
+            
+            // Length check
+            if (password.length >= 8) strength += 25;
+            
+            // Lowercase check
+            if (password.match(/[a-z]+/)) strength += 25;
+            
+            // Uppercase check
+            if (password.match(/[A-Z]+/)) strength += 25;
+            
+            // Number or special char check
+            if (password.match(/[0-9]+/) || password.match(/[^a-zA-Z0-9]+/)) strength += 25;
+            
+            // Update strength bar
+            strengthBar.style.width = strength + '%';
+            
+            // Change color based on strength
+            if (strength < 50) {
+                strengthBar.style.backgroundColor = '#dc3545'; // red
+            } else if (strength < 75) {
+                strengthBar.style.backgroundColor = '#ffc107'; // yellow
+            } else {
+                strengthBar.style.backgroundColor = '#198754'; // green
+            }
+        }
+        
+        // Check if passwords match
+        document.getElementById('confirmPassword').addEventListener('keyup', function() {
+            const password = document.getElementById('password').value;
+            const confirmPassword = this.value;
+            const errorElement = document.getElementById('passwordMatchError');
+            
+            if (password !== confirmPassword) {
+                errorElement.style.display = 'block';
+            } else {
+                errorElement.style.display = 'none';
+            }
+        });
+        
+        // Form validation on submit
+        document.querySelector('form').addEventListener('submit', function(event) {
+            const password = document.getElementById('password').value;
+            const confirmPassword = document.getElementById('confirmPassword').value;
+            
+            if (password !== confirmPassword) {
+                event.preventDefault();
+                document.getElementById('passwordMatchError').style.display = 'block';
+            }
+        });
+    </script>
+</body>
+</html>

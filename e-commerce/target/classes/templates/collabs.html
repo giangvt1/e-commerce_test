@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Collaborations - CYO Shop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .page-container {
+            background-color: #f8f9fa;
+            padding: 50px 0;
+            min-height: 600px;
+        }
+        
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #333;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: #3366ff;
+        }
+        
+        .collab-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            transition: transform 0.3s ease;
+        }
+        
+        .collab-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .collab-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        
+        .collab-details {
+            padding: 25px;
+        }
+        
+        .collab-name {
+            font-size: 1.4rem;
+            font-weight: 600;
+            margin-bottom: 10px;
+            color: #333;
+        }
+        
+        .collab-description {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.6;
+            margin-bottom: 20px;
+        }
+        
+        .collab-button {
+            display: inline-block;
+            padding: 8px 20px;
+            background-color: #3366ff;
+            color: white;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+        }
+        
+        .collab-button:hover {
+            background-color: #2952cc;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header th:replace="fragments/header :: header"></header>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${info}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <span th:text="${info}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <span th:text="${warning}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    
+    <!-- Collaborations Content -->
+    <div class="page-container">
+        <div class="container">
+            <h1 class="page-title">Our Collaborations</h1>
+            
+            <div class="row mt-5">
+                <!-- Collaboration 1 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="collab-card">
+                        <img src="https://via.placeholder.com/600x400?text=Collaboration+1" alt="Collaboration 1" class="collab-image">
+                        <div class="collab-details">
+                            <h3 class="collab-name">Designer Brand</h3>
+                            <p class="collab-description">Our exclusive collaboration with Designer Brand brings you limited edition products that combine style and functionality.</p>
+                            <a href="#" class="collab-button">View Collection</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Collaboration 2 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="collab-card">
+                        <img src="https://via.placeholder.com/600x400?text=Collaboration+2" alt="Collaboration 2" class="collab-image">
+                        <div class="collab-details">
+                            <h3 class="collab-name">Artist Series</h3>
+                            <p class="collab-description">Featuring unique designs by local artists, this collaboration supports the creative community while offering you beautiful products.</p>
+                            <a href="#" class="collab-button">View Collection</a>
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Collaboration 3 -->
+                <div class="col-md-6 col-lg-4">
+                    <div class="collab-card">
+                        <img src="https://via.placeholder.com/600x400?text=Collaboration+3" alt="Collaboration 3" class="collab-image">
+                        <div class="collab-details">
+                            <h3 class="collab-name">Tech Innovations</h3>
+                            <p class="collab-description">A partnership with leading tech companies to bring you cutting-edge products with innovative features and designs.</p>
+                            <a href="#" class="collab-button">View Collection</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="text-center mt-4">
+                <p>Interested in collaborating with us? <a href="/contact" class="text-primary">Contact our team</a> to discuss partnership opportunities.</p>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer th:replace="fragments/footer :: footer"></footer>
+    
+    <!-- Scripts -->
+    <div th:replace="fragments/footer :: scripts"></div>
+</body>
+</html>

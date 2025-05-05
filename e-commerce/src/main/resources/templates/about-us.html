@@ -1,0 +1,307 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>About Us - CYO Shop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .page-container {
+            background-color: #f8f9fa;
+            padding: 50px 0;
+            min-height: 600px;
+        }
+        
+        .page-title {
+            font-size: 2.5rem;
+            font-weight: 700;
+            margin-bottom: 2rem;
+            text-align: center;
+            color: #333;
+            position: relative;
+            padding-bottom: 15px;
+        }
+        
+        .page-title::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 50%;
+            transform: translateX(-50%);
+            width: 80px;
+            height: 3px;
+            background-color: #3366ff;
+        }
+        
+        .about-section {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 40px;
+        }
+        
+        .about-image {
+            width: 100%;
+            height: auto;
+            object-fit: cover;
+        }
+        
+        .about-content {
+            padding: 30px;
+        }
+        
+        .about-content h2 {
+            font-size: 1.8rem;
+            font-weight: 600;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        
+        .about-content p {
+            color: #666;
+            font-size: 1rem;
+            line-height: 1.8;
+            margin-bottom: 20px;
+        }
+        
+        .value-card {
+            background-color: white;
+            border-radius: 8px;
+            padding: 25px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .value-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .value-icon {
+            font-size: 2.5rem;
+            color: #3366ff;
+            margin-bottom: 15px;
+        }
+        
+        .value-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            margin-bottom: 15px;
+            color: #333;
+        }
+        
+        .value-description {
+            color: #666;
+            font-size: 0.95rem;
+            line-height: 1.6;
+        }
+        
+        .team-section {
+            margin-top: 50px;
+        }
+        
+        .team-card {
+            background-color: white;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            margin-bottom: 30px;
+            text-align: center;
+            transition: transform 0.3s;
+        }
+        
+        .team-card:hover {
+            transform: translateY(-10px);
+        }
+        
+        .team-image {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+        }
+        
+        .team-details {
+            padding: 20px;
+        }
+        
+        .team-name {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: #333;
+        }
+        
+        .team-position {
+            color: #3366ff;
+            font-size: 0.9rem;
+            margin-bottom: 15px;
+        }
+        
+        .team-bio {
+            color: #666;
+            font-size: 0.9rem;
+            line-height: 1.6;
+            margin-bottom: 15px;
+        }
+        
+        .social-links a {
+            color: #3366ff;
+            margin: 0 5px;
+            font-size: 1.2rem;
+            transition: color 0.2s;
+        }
+        
+        .social-links a:hover {
+            color: #2952cc;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header th:replace="fragments/header :: header"></header>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${info}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <span th:text="${info}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <span th:text="${warning}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    
+    <!-- About Us Content -->
+    <div class="page-container">
+        <div class="container">
+            <h1 class="page-title">About SASUCare</h1>
+            
+            <!-- About Section -->
+            <div class="about-section">
+                <div class="row g-0">
+                    <div class="col-lg-6">
+                        <img src="https://via.placeholder.com/800x600?text=About+SASUCare" alt="About SASUCare" class="about-image">
+                    </div>
+                    <div class="col-lg-6">
+                        <div class="about-content">
+                            <h2>Our Story</h2>
+                            <p>Founded in 2020, SASUCare was born from a vision to provide high-quality products with exceptional customer service. What started as a small online shop has grown into a trusted e-commerce platform serving customers nationwide.</p>
+                            
+                            <p>Our mission is to offer a carefully curated selection of products that enrich the lives of our customers while maintaining the highest standards of quality, affordability, and sustainability.</p>
+                            
+                            <p>At SASUCare, we believe that shopping should be an enjoyable experience, not a chore. That's why we've designed our platform to be user-friendly, with detailed product information and responsive customer support to ensure your satisfaction with every purchase.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Our Values -->
+            <h2 class="text-center mb-4">Our Values</h2>
+            <div class="row">
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-check-circle"></i>
+                        </div>
+                        <h3 class="value-title">Quality</h3>
+                        <p class="value-description">We carefully select every product in our catalog to ensure it meets our high standards of quality and durability.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-heart"></i>
+                        </div>
+                        <h3 class="value-title">Customer Focus</h3>
+                        <p class="value-description">Your satisfaction is our top priority. We're committed to providing the best shopping experience and responsive support.</p>
+                    </div>
+                </div>
+                
+                <div class="col-md-4">
+                    <div class="value-card">
+                        <div class="value-icon">
+                            <i class="fas fa-leaf"></i>
+                        </div>
+                        <h3 class="value-title">Sustainability</h3>
+                        <p class="value-description">We strive to minimize our environmental impact by offering eco-friendly products and sustainable packaging solutions.</p>
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Team Section -->
+            <div class="team-section">
+                <h2 class="text-center mb-4">Meet Our Team</h2>
+                <div class="row">
+                    <div class="col-md-4">
+                        <div class="team-card">
+                            <img src="https://via.placeholder.com/400x500?text=Team+Member+1" alt="Team Member 1" class="team-image">
+                            <div class="team-details">
+                                <h3 class="team-name">John Smith</h3>
+                                <p class="team-position">Founder & CEO</p>
+                                <p class="team-bio">With over 15 years of experience in retail and e-commerce, John founded SASUCare with a vision to create a better shopping experience.</p>
+                                <div class="social-links">
+                                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="#"><i class="fab fa-twitter"></i></a>
+                                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="team-card">
+                            <img src="https://via.placeholder.com/400x500?text=Team+Member+2" alt="Team Member 2" class="team-image">
+                            <div class="team-details">
+                                <h3 class="team-name">Sarah Johnson</h3>
+                                <p class="team-position">Head of Product</p>
+                                <p class="team-bio">Sarah brings her keen eye for quality and design to curate our product collections and ensure they meet our standards.</p>
+                                <div class="social-links">
+                                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="#"><i class="fab fa-twitter"></i></a>
+                                    <a href="#"><i class="fab fa-instagram"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="col-md-4">
+                        <div class="team-card">
+                            <img src="https://via.placeholder.com/400x500?text=Team+Member+3" alt="Team Member 3" class="team-image">
+                            <div class="team-details">
+                                <h3 class="team-name">David Lee</h3>
+                                <p class="team-position">Customer Experience Manager</p>
+                                <p class="team-bio">David leads our customer support team, ensuring that every customer receives prompt and helpful assistance.</p>
+                                <div class="social-links">
+                                    <a href="#"><i class="fab fa-linkedin-in"></i></a>
+                                    <a href="#"><i class="fab fa-twitter"></i></a>
+                                    <a href="#"><i class="fab fa-facebook-f"></i></a>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer th:replace="fragments/footer :: footer"></footer>
+    
+    <!-- Scripts -->
+    <div th:replace="fragments/footer :: scripts"></div>
+</body>
+</html>

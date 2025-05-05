@@ -1,0 +1,455 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Products - Seller Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .seller-sidebar {
+            background-color: #2c3e50;
+            color: #fff;
+            min-height: calc(100vh - 72px);
+            padding-top: 20px;
+        }
+        
+        .seller-sidebar .nav-link {
+            color: #ecf0f1;
+            padding: 12px 20px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+        
+        .seller-sidebar .nav-link:hover, 
+        .seller-sidebar .nav-link.active {
+            background-color: #3498db;
+            color: #fff;
+        }
+        
+        .seller-sidebar .nav-link i {
+            width: 24px;
+            text-align: center;
+            margin-right: 8px;
+        }
+        
+        .dashboard-card {
+            border-radius: 10px;
+            border: none;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 20px;
+            transition: transform 0.2s;
+        }
+        
+        .dashboard-card:hover {
+            transform: translateY(-5px);
+        }
+        
+        .product-image-preview {
+            width: 100px;
+            height: 100px;
+            object-fit: cover;
+            border-radius: 5px;
+        }
+        
+        .add-product-form label {
+            font-weight: 500;
+            margin-bottom: 5px;
+        }
+        
+        .add-product-form .form-control,
+        .add-product-form .form-select {
+            padding: 10px 15px;
+            border-radius: 5px;
+            margin-bottom: 15px;
+        }
+        
+        .table-responsive {
+            border-radius: 10px;
+            overflow: hidden;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+        }
+        
+        .product-table {
+            margin-bottom: 0;
+        }
+        
+        .product-table th {
+            background-color: #f8f9fa;
+            font-weight: 600;
+        }
+        
+        .btn-action {
+            padding: 5px 10px;
+            margin-right: 5px;
+        }
+        
+        /* Status badges */
+        .badge-active {
+            background-color: #28a745;
+        }
+        
+        .badge-inactive {
+            background-color: #dc3545;
+        }
+        
+        .badge-draft {
+            background-color: #6c757d;
+        }
+        
+        /* User dropdown styles */
+        .user-dropdown {
+            position: relative;
+            display: inline-block;
+        }
+        
+        .user-dropdown-toggle {
+            background: none;
+            border: none;
+            color: #333;
+            cursor: pointer;
+            display: flex;
+            align-items: center;
+            padding: 8px 12px;
+            border-radius: 4px;
+            transition: background-color 0.2s;
+        }
+        
+        .user-dropdown-toggle:hover {
+            background-color: rgba(0, 0, 0, 0.05);
+        }
+        
+        .user-dropdown-menu {
+            position: absolute;
+            top: 100%;
+            right: 0;
+            background-color: white;
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+            border-radius: 4px;
+            padding: 8px 0;
+            min-width: 180px;
+            display: none;
+            z-index: 1000;
+        }
+        
+        .user-dropdown-menu.show {
+            display: block;
+        }
+        
+        .user-dropdown-menu a {
+            display: block;
+            padding: 8px 16px;
+            color: #333;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .user-dropdown-menu a:hover {
+            background-color: #f5f5f5;
+            color: #007bff;
+        }
+        
+        /* Image preview */
+        .image-preview-container {
+            width: 100%;
+            max-width: 300px;
+            margin-bottom: 15px;
+            border: 1px dashed #ddd;
+            border-radius: 5px;
+            padding: 10px;
+            text-align: center;
+        }
+        
+        .image-preview {
+            max-width: 100%;
+            max-height: 200px;
+            display: none;
+            margin: 0 auto 10px;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <div th:replace="fragments/header :: header"></div>
+    
+    <!-- Flash Messages -->
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <i class="fas fa-check-circle me-2"></i> <span th:text="${successMessage}">Success message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <i class="fas fa-exclamation-circle me-2"></i> <span th:text="${errorMessage}">Error message</span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    
+    <div class="container-fluid py-4">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-lg-2 seller-sidebar">
+                <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+                    <h5 class="mb-0">Seller Dashboard</h5>
+                </div>
+                <div class="nav flex-column">
+                    <a th:href="@{/seller/dashboard}" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                    <a th:href="@{/seller/products}" class="nav-link active">
+                        <i class="fas fa-box"></i> Products
+                    </a>
+                    <a th:href="@{/seller/orders}" class="nav-link">
+                        <i class="fas fa-shopping-cart"></i> Orders
+                    </a>
+                </div>
+            </div>
+            
+            <!-- Main Content -->
+            <div class="col-lg-10 px-4">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h4>Manage Products</h4>
+                    <button type="button" class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#addProductModal">
+                        <i class="fas fa-plus me-2"></i> Add New Product
+                    </button>
+                </div>
+                
+                <!-- Products Table -->
+                <div class="card dashboard-card">
+                    <div class="card-body">
+                        <div class="table-responsive">
+                            <table class="table table-hover product-table">
+                                <thead>
+                                    <tr>
+                                        <th>Image</th>
+                                        <th>Product</th>
+                                        <th>SKU</th>
+                                        <th>Price</th>
+                                        <th>Stock</th>
+                                        <th>Status</th>
+                                        <th>Actions</th>
+                                    </tr>
+                                </thead>
+                                <tbody>
+                                    <tr th:if="${products.empty}">
+                                        <td colspan="7" class="text-center py-4">
+                                            <div class="text-muted">
+                                                <i class="fas fa-box fa-3x mb-3"></i>
+                                                <p>No products found. Click "Add New Product" to get started.</p>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                    <tr th:each="product : ${products}">
+                                        <td>
+                                            <img th:if="${product.imageUrl}" th:src="${product.imageUrl}" alt="Product image" class="product-image-preview">
+                                            <div th:unless="${product.imageUrl}" class="bg-light d-flex align-items-center justify-content-center" style="width:100px;height:100px;border-radius:5px;">
+                                                <i class="fas fa-image text-muted"></i>
+                                            </div>
+                                        </td>
+                                        <td>
+                                            <div class="fw-semibold" th:text="${product.name}">Product Name</div>
+                                            <small class="text-muted" th:text="${product.category != null ? product.category.name : 'No category'}">Category</small>
+                                        </td>
+                                        <td th:text="${product.sku != null ? product.sku : '-'}">SKU123</td>
+                                        <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
+                                        <td th:text="${product.stockQuantity}">10</td>
+                                        <td>
+                                            <span th:if="${product.status == 'ACTIVE'}" class="badge bg-success">Active</span>
+                                            <span th:if="${product.status == 'INACTIVE'}" class="badge bg-danger">Inactive</span>
+                                            <span th:if="${product.status == 'DRAFT'}" class="badge bg-secondary">Draft</span>
+                                        </td>
+                                        <td>
+                                            <div class="btn-group">
+                                                <a th:href="@{'/seller/products/edit/' + ${product.id}}" class="btn btn-sm btn-outline-primary btn-action">
+                                                    <i class="fas fa-edit"></i>
+                                                </a>
+                                                <button type="button" class="btn btn-sm btn-outline-danger btn-action" 
+                                                        data-bs-toggle="modal" th:data-bs-target="'#deleteProductModal-' + ${product.id}">
+                                                    <i class="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                            
+                                            <!-- Delete Product Modal -->
+                                            <div class="modal fade" th:id="'deleteProductModal-' + ${product.id}" tabindex="-1" 
+                                                aria-labelledby="'deleteProductModalLabel-' + ${product.id}" aria-hidden="true">
+                                                <div class="modal-dialog">
+                                                    <div class="modal-content">
+                                                        <div class="modal-header">
+                                                            <h5 class="modal-title" th:id="'deleteProductModalLabel-' + ${product.id}">Confirm Delete</h5>
+                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                        </div>
+                                                        <div class="modal-body">
+                                                            Are you sure you want to delete the product "<span th:text="${product.name}"></span>"? This action cannot be undone.
+                                                        </div>
+                                                        <div class="modal-footer">
+                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                                                            <form th:action="@{'/seller/products/delete/' + ${product.id}}" method="post">
+                                                                <button type="submit" class="btn btn-danger">Delete</button>
+                                                            </form>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Add Product Modal -->
+    <div class="modal fade" id="addProductModal" tabindex="-1" aria-labelledby="addProductModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="addProductModalLabel">Add New Product</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body">
+                    <form class="add-product-form" th:action="@{/seller/products/add}" method="post" th:object="${newProduct}" enctype="multipart/form-data">
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="productName" class="form-label">Product Name*</label>
+                                    <input type="text" class="form-control" id="productName" th:field="*{name}" required>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="productSku" class="form-label">SKU (Optional)</label>
+                                    <input type="text" class="form-control" id="productSku" th:field="*{sku}">
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="mb-3">
+                            <label for="productDescription" class="form-label">Description</label>
+                            <textarea class="form-control" id="productDescription" rows="3" th:field="*{description}"></textarea>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="productPrice" class="form-label">Price (VND)*</label>
+                                    <input type="number" class="form-control" id="productPrice" th:field="*{price}" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="productStock" class="form-label">Stock Quantity*</label>
+                                    <input type="number" class="form-control" id="productStock" th:field="*{stockQuantity}" min="0" required>
+                                </div>
+                            </div>
+                            <div class="col-md-4">
+                                <div class="mb-3">
+                                    <label for="productCategory" class="form-label">Category</label>
+                                    <select class="form-select" id="productCategory" name="category.id">
+                                        <option value="">Select Category (Optional)</option>
+                                        <option th:each="category : ${categories}" 
+                                                th:value="${category.id}" 
+                                                th:text="${category.name}">Category Name</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="row">
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="productImage" class="form-label">Product Image</label>
+                                    <input type="file" class="form-control" id="productImage" name="productImage" accept="image/*">
+                                    <small class="form-text text-muted">
+                                        Upload product image (JPEG, PNG, GIF). Maximum file size: 5MB
+                                    </small>
+                                </div>
+                                <div class="image-preview-container">
+                                    <img id="imagePreview" class="image-preview">
+                                    <div id="noImageText" class="text-muted">
+                                        <i class="fas fa-image fa-3x mb-2"></i>
+                                        <p>Image preview will appear here</p>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-md-6">
+                                <div class="mb-3">
+                                    <label for="productStatus" class="form-label">Status*</label>
+                                    <select class="form-select" id="productStatus" th:field="*{status}" required>
+                                        <option value="ACTIVE">Active</option>
+                                        <option value="INACTIVE">Inactive</option>
+                                        <option value="DRAFT">Draft</option>
+                                    </select>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <div class="modal-footer border-0 px-0 pb-0">
+                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                            <button type="submit" class="btn btn-primary">Save Product</button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <div th:replace="fragments/footer :: footer"></div>
+    
+    <!-- Bootstrap & jQuery Scripts -->
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+    
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // Dropdown functionality for user menu
+            const userMenuButton = document.getElementById('userMenuButton');
+            const userDropdownMenu = document.getElementById('userDropdownMenu');
+            
+            if (userMenuButton && userDropdownMenu) {
+                userMenuButton.addEventListener('click', function(e) {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    userDropdownMenu.classList.toggle('show');
+                });
+                
+                // Close dropdown when clicking outside
+                document.addEventListener('click', function(e) {
+                    if (userDropdownMenu.classList.contains('show') && 
+                        !userMenuButton.contains(e.target) && 
+                        !userDropdownMenu.contains(e.target)) {
+                        userDropdownMenu.classList.remove('show');
+                    }
+                });
+            }
+            
+            // Image preview functionality
+            const imageInput = document.getElementById('productImage');
+            const imagePreview = document.getElementById('imagePreview');
+            const noImageText = document.getElementById('noImageText');
+            
+            if (imageInput && imagePreview && noImageText) {
+                imageInput.addEventListener('change', function() {
+                    if (this.files && this.files[0]) {
+                        const reader = new FileReader();
+                        
+                        reader.onload = function(e) {
+                            imagePreview.src = e.target.result;
+                            imagePreview.style.display = 'block';
+                            noImageText.style.display = 'none';
+                        }
+                        
+                        reader.readAsDataURL(this.files[0]);
+                    } else {
+                        imagePreview.style.display = 'none';
+                        noImageText.style.display = 'block';
+                    }
+                });
+            }
+        });
+    </script>
+</body>
+</html>

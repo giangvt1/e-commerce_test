@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Orders - SASUCare Shop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .page-container {
+            background-color: #f8f9fa;
+            padding: 50px 0;
+            min-height: 600px;
+        }
+        
+        .profile-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+        
+        .profile-header {
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .profile-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .profile-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .profile-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .profile-tab {
+            margin-right: 20px;
+            padding-bottom: 10px;
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+            text-decoration: none;
+        }
+        
+        .profile-tab.active {
+            color: #3366ff;
+        }
+        
+        .profile-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #3366ff;
+        }
+        
+        .order-card {
+            border: 1px solid #eee;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            overflow: hidden;
+        }
+        
+        .order-header {
+            background-color: #f8f9fa;
+            padding: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-body {
+            padding: 15px;
+        }
+        
+        .order-footer {
+            padding: 15px;
+            border-top: 1px solid #eee;
+            background-color: #f8f9fa;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+        
+        .order-id {
+            font-weight: 600;
+            color: #333;
+        }
+        
+        .order-date {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .order-status {
+            display: inline-block;
+            padding: 5px 10px;
+            border-radius: 4px;
+            font-size: 0.8rem;
+            font-weight: 500;
+        }
+        
+        .status-pending {
+            background-color: #fff3cd;
+            color: #856404;
+        }
+        
+        .status-confirmed {
+            background-color: #d1ecf1;
+            color: #0c5460;
+        }
+        
+        .status-shipped {
+            background-color: #d4edda;
+            color: #155724;
+        }
+        
+        .status-delivered {
+            background-color: #c3e6cb;
+            color: #155724;
+        }
+        
+        .status-cancelled {
+            background-color: #f8d7da;
+            color: #721c24;
+        }
+        
+        .order-product {
+            display: flex;
+            margin-bottom: 15px;
+            padding-bottom: 15px;
+            border-bottom: 1px solid #eee;
+        }
+        
+        .order-product:last-child {
+            margin-bottom: 0;
+            padding-bottom: 0;
+            border-bottom: none;
+        }
+        
+        .order-product-image {
+            width: 70px;
+            height: 70px;
+            object-fit: cover;
+            border-radius: 4px;
+            margin-right: 15px;
+        }
+        
+        .order-product-details {
+            flex: 1;
+        }
+        
+        .order-product-name {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .order-product-price {
+            font-weight: 500;
+            color: #3366ff;
+        }
+        
+        .order-product-quantity {
+            color: #666;
+            font-size: 0.9rem;
+        }
+        
+        .order-total {
+            font-weight: 600;
+            color: #333;
+            font-size: 1.1rem;
+        }
+        
+        .view-order-button {
+            background-color: #3366ff;
+            color: white;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 0.9rem;
+            text-decoration: none;
+            transition: background-color 0.2s;
+        }
+        
+        .view-order-button:hover {
+            background-color: #2952cc;
+            color: white;
+        }
+        
+        .empty-orders {
+            text-align: center;
+            padding: 40px 20px;
+        }
+        
+        .empty-orders i {
+            font-size: 4rem;
+            color: #dee2e6;
+            margin-bottom: 15px;
+        }
+        
+        .empty-orders h3 {
+            font-size: 1.5rem;
+            color: #333;
+            margin-bottom: 10px;
+        }
+        
+        .empty-orders p {
+            color: #666;
+            margin-bottom: 20px;
+        }
+        
+        .shop-now-button {
+            background-color: #3366ff;
+            color: white;
+            padding: 8px 20px;
+            border-radius: 4px;
+            text-decoration: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            display: inline-block;
+        }
+        
+        .shop-now-button:hover {
+            background-color: #2952cc;
+            color: white;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header th:replace="fragments/header :: header"></header>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${info}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <span th:text="${info}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <span th:text="${warning}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    
+    <!-- Orders Content -->
+    <div class="page-container">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 mb-4">
+                    <!-- Sidebar Menu -->
+                    <div class="profile-container">
+                        <div class="profile-tabs d-block">
+                            <a href="/account/profile" class="d-block profile-tab mb-3">
+                                <i class="fas fa-user-circle me-2"></i> My Profile
+                            </a>
+                            <a href="/account/orders" class="d-block profile-tab active mb-3">
+                                <i class="fas fa-shopping-bag me-2"></i> My Orders
+                            </a>
+                            <a href="/account/password" class="d-block profile-tab mb-3">
+                                <i class="fas fa-key me-2"></i> Change Password
+                            </a>
+                            <!-- Show if user has SELLER role -->
+                            <a th:if="${#authorization.expression('hasRole(''SELLER'')')}" href="/seller/dashboard" class="d-block profile-tab mb-3">
+                                <i class="fas fa-store me-2"></i> Seller Dashboard
+                            </a>
+                            <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();" class="d-block profile-tab mb-3">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a>
+                            <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-9">
+                    <!-- Orders List -->
+                    <div class="profile-container">
+                        <div class="profile-header">
+                            <h1 class="profile-title">My Orders</h1>
+                            <p class="profile-subtitle">Track and manage your purchases</p>
+                        </div>
+                        
+                        <!-- Empty Orders State -->
+                        <div class="empty-orders">
+                            <i class="fas fa-shopping-bag"></i>
+                            <h3>No Orders Yet</h3>
+                            <p>Looks like you haven't placed any orders yet. Start shopping and your orders will appear here.</p>
+                            <a href="/home" class="shop-now-button">Shop Now</a>
+                        </div>
+                        
+                        <!-- Sample Orders - This will be populated from the database -->
+                        <!-- 
+                        <div class="order-card">
+                            <div class="order-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="order-id">Order #ORD123456</div>
+                                    <div class="order-date">Placed on 15 Apr 2023</div>
+                                </div>
+                                <div class="order-status status-shipped">Shipped</div>
+                            </div>
+                            
+                            <div class="order-body">
+                                <div class="order-product">
+                                    <img src="https://via.placeholder.com/70x70" alt="Product" class="order-product-image">
+                                    <div class="order-product-details">
+                                        <div class="order-product-name">Product Name</div>
+                                        <div class="order-product-price">150,000 đ</div>
+                                        <div class="order-product-quantity">Quantity: 2</div>
+                                    </div>
+                                </div>
+                                
+                                <div class="order-product">
+                                    <img src="https://via.placeholder.com/70x70" alt="Product" class="order-product-image">
+                                    <div class="order-product-details">
+                                        <div class="order-product-name">Another Product</div>
+                                        <div class="order-product-price">200,000 đ</div>
+                                        <div class="order-product-quantity">Quantity: 1</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="order-footer">
+                                <div class="order-total">Total: 500,000 đ</div>
+                                <a href="#" class="view-order-button">View Details</a>
+                            </div>
+                        </div>
+                        
+                        <div class="order-card">
+                            <div class="order-header d-flex justify-content-between align-items-center">
+                                <div>
+                                    <div class="order-id">Order #ORD123457</div>
+                                    <div class="order-date">Placed on 10 Apr 2023</div>
+                                </div>
+                                <div class="order-status status-delivered">Delivered</div>
+                            </div>
+                            
+                            <div class="order-body">
+                                <div class="order-product">
+                                    <img src="https://via.placeholder.com/70x70" alt="Product" class="order-product-image">
+                                    <div class="order-product-details">
+                                        <div class="order-product-name">Third Product</div>
+                                        <div class="order-product-price">350,000 đ</div>
+                                        <div class="order-product-quantity">Quantity: 1</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="order-footer">
+                                <div class="order-total">Total: 350,000 đ</div>
+                                <a href="#" class="view-order-button">View Details</a>
+                            </div>
+                        </div>
+                        -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer th:replace="fragments/footer :: footer"></footer>
+    
+    <!-- Scripts -->
+    <div th:replace="fragments/footer :: scripts"></div>
+</body>
+</html>

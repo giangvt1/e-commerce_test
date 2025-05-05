@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Profile - SASUCare Shop</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .page-container {
+            background-color: #f8f9fa;
+            padding: 50px 0;
+            min-height: 600px;
+        }
+        
+        .profile-container {
+            background-color: white;
+            border-radius: 8px;
+            box-shadow: 0 5px 15px rgba(0, 0, 0, 0.08);
+            padding: 30px;
+        }
+        
+        .profile-header {
+            display: flex;
+            align-items: center;
+            margin-bottom: 30px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 20px;
+        }
+        
+        .profile-avatar {
+            width: 100px;
+            height: 100px;
+            border-radius: 50%;
+            object-fit: cover;
+            margin-right: 20px;
+            border: 3px solid #3366ff;
+        }
+        
+        .profile-title {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 5px;
+        }
+        
+        .profile-subtitle {
+            color: #666;
+            font-size: 1rem;
+        }
+        
+        .profile-badge {
+            display: inline-block;
+            background-color: #3366ff;
+            color: white;
+            font-size: 0.8rem;
+            font-weight: 500;
+            padding: 5px 10px;
+            border-radius: 4px;
+            margin-top: 10px;
+        }
+        
+        .profile-section {
+            margin-bottom: 30px;
+        }
+        
+        .profile-section-title {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 15px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .profile-info-item {
+            margin-bottom: 15px;
+        }
+        
+        .profile-info-label {
+            font-weight: 600;
+            color: #666;
+            font-size: 0.9rem;
+            margin-bottom: 5px;
+        }
+        
+        .profile-info-value {
+            color: #333;
+            font-size: 1rem;
+        }
+        
+        .profile-action-button {
+            background-color: #3366ff;
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            border: none;
+            font-weight: 500;
+            transition: background-color 0.2s;
+            text-decoration: none;
+            display: inline-block;
+            font-size: 0.9rem;
+        }
+        
+        .profile-action-button:hover {
+            background-color: #2952cc;
+            color: white;
+        }
+        
+        .profile-tabs {
+            display: flex;
+            margin-bottom: 20px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        
+        .profile-tab {
+            margin-right: 20px;
+            padding-bottom: 10px;
+            color: #666;
+            font-weight: 500;
+            cursor: pointer;
+            transition: color 0.2s;
+            position: relative;
+        }
+        
+        .profile-tab.active {
+            color: #3366ff;
+        }
+        
+        .profile-tab.active::after {
+            content: '';
+            position: absolute;
+            bottom: -10px;
+            left: 0;
+            width: 100%;
+            height: 3px;
+            background-color: #3366ff;
+        }
+    </style>
+</head>
+<body>
+    <!-- Header -->
+    <header th:replace="fragments/header :: header"></header>
+    
+    <!-- Flash Messages -->
+    <div class="container mt-3">
+        <div th:if="${success}" class="alert alert-success alert-dismissible fade show" role="alert">
+            <span th:text="${success}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${error}" class="alert alert-danger alert-dismissible fade show" role="alert">
+            <span th:text="${error}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${info}" class="alert alert-info alert-dismissible fade show" role="alert">
+            <span th:text="${info}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+        <div th:if="${warning}" class="alert alert-warning alert-dismissible fade show" role="alert">
+            <span th:text="${warning}"></span>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    </div>
+    
+    <!-- Profile Content -->
+    <div class="page-container">
+        <div class="container">
+            <div class="row">
+                <div class="col-lg-3 mb-4">
+                    <!-- Sidebar Menu -->
+                    <div class="profile-container">
+                        <div class="profile-tabs d-block">
+                            <a href="/account/profile" class="d-block profile-tab active mb-3">
+                                <i class="fas fa-user-circle me-2"></i> My Profile
+                            </a>
+                            <a href="/account/orders" class="d-block profile-tab mb-3">
+                                <i class="fas fa-shopping-bag me-2"></i> My Orders
+                            </a>
+                            <a href="/account/password" class="d-block profile-tab mb-3">
+                                <i class="fas fa-key me-2"></i> Change Password
+                            </a>
+                            <!-- Show if user has SELLER role -->
+                            <a th:if="${#authorization.expression('hasRole(''SELLER'')')}" href="/seller/dashboard" class="d-block profile-tab mb-3">
+                                <i class="fas fa-store me-2"></i> Seller Dashboard
+                            </a>
+                            <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();" class="d-block profile-tab mb-3">
+                                <i class="fas fa-sign-out-alt me-2"></i> Logout
+                            </a>
+                            <form id="logout-form" th:action="@{/logout}" method="post" style="display: none;"></form>
+                        </div>
+                    </div>
+                </div>
+                
+                <div class="col-lg-9">
+                    <!-- Profile Info -->
+                    <div class="profile-container">
+                        <div class="profile-header">
+                            <!-- Profile Avatar -->
+                            <img src="https://via.placeholder.com/200x200?text=Avatar" alt="User Avatar" class="profile-avatar">
+                            
+                            <!-- Profile Title -->
+                            <div>
+                                <h1 class="profile-title" th:text="${user.firstName + ' ' + user.lastName}">John Doe</h1>
+                                <p class="profile-subtitle" th:text="${user.email}">john.doe@example.com</p>
+                                
+                                <!-- Show role badges -->
+                                <div>
+                                    <span class="profile-badge" th:each="role : ${user.roles}" th:text="${#strings.replace(role.name, 'ROLE_', '')}">Customer</span>
+                                </div>
+                            </div>
+                            
+                            <!-- Edit Button -->
+                            <div class="ms-auto">
+                                <a th:href="@{/account/profile/edit}" class="profile-action-button">
+                                    <i class="fas fa-edit me-1"></i> Edit Profile
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Personal Information -->
+                        <div class="profile-section">
+                            <h2 class="profile-section-title">Personal Information</h2>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="profile-info-item">
+                                        <div class="profile-info-label">First Name</div>
+                                        <div class="profile-info-value" th:text="${user.firstName}">John</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="profile-info-item">
+                                        <div class="profile-info-label">Last Name</div>
+                                        <div class="profile-info-value" th:text="${user.lastName}">Doe</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="profile-info-item">
+                                        <div class="profile-info-label">Email</div>
+                                        <div class="profile-info-value" th:text="${user.email}">john.doe@example.com</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="profile-info-item">
+                                        <div class="profile-info-label">Account Status</div>
+                                        <div class="profile-info-value">
+                                            <span th:if="${user.active}" class="badge text-bg-success">Active</span>
+                                            <span th:unless="${user.active}" class="badge text-bg-danger">Inactive</span>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Shop Information - only shown for SELLERS -->
+                        <div class="profile-section" th:if="${#authorization.expression('hasRole(''SELLER'')')}">
+                            <h2 class="profile-section-title">Shop Information</h2>
+                            
+                            <div class="row">
+                                <div class="col-md-6">
+                                    <div class="profile-info-item">
+                                        <div class="profile-info-label">Shop Name</div>
+                                        <div class="profile-info-value" th:text="${user.shopName}">My Awesome Shop</div>
+                                    </div>
+                                </div>
+                                <div class="col-md-6">
+                                    <div class="profile-info-item">
+                                        <div class="profile-info-label">Seller Since</div>
+                                        <div class="profile-info-value" th:text="${#temporals.format(user.createdAt, 'dd-MM-yyyy')}">01-01-2023</div>
+                                    </div>
+                                </div>
+                            </div>
+                            
+                            <div class="text-end mt-3">
+                                <a th:href="@{/seller/dashboard}" class="profile-action-button">
+                                    <i class="fas fa-store me-1"></i> Manage Shop
+                                </a>
+                            </div>
+                        </div>
+                        
+                        <!-- Account Actions -->
+                        <div class="profile-section">
+                            <h2 class="profile-section-title">Account Actions</h2>
+                            
+                            <div class="d-flex gap-2">
+                                <a th:href="@{/account/password}" class="profile-action-button">
+                                    <i class="fas fa-key me-1"></i> Change Password
+                                </a>
+                                
+                                <a th:href="@{/account/orders}" class="profile-action-button">
+                                    <i class="fas fa-shopping-bag me-1"></i> View Orders
+                                </a>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- Footer -->
+    <footer th:replace="fragments/footer :: footer"></footer>
+    
+    <!-- Scripts -->
+    <div th:replace="fragments/footer :: scripts"></div>
+</body>
+</html>
