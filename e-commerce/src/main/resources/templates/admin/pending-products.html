@@ -158,7 +158,7 @@
                                     </div>
                                     <p class="card-text text-truncate" th:text="${product.description}">Product description goes here.</p>
                                     <div class="d-flex justify-content-between align-items-center">
-                                        <span class="h5 mb-0" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + 'u20ab'">u20ab0</span>
+                                        <span class="h5 mb-0" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')}"></span>
                                         <span class="text-muted" th:text="'Quantity: ' + ${product.stockQuantity}">Quantity: 0</span>
                                     </div>
                                     <p class="text-muted mt-2" th:text="'Seller: ' + ${product.seller != null ? product.seller.firstName + ' ' + product.seller.lastName : 'Unknown'}">Seller: Unknown</p>
