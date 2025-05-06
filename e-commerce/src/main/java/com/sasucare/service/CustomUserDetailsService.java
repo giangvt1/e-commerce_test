@@ -4,6 +4,7 @@ import com.sasucare.model.Role;
 import com.sasucare.model.User;
 import com.sasucare.repository.RoleUserRepository;
 import com.sasucare.repository.UserRepository;
+import com.sasucare.security.CustomUserDetails;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -62,16 +63,8 @@ public class CustomUserDetailsService implements UserDetailsService {
         
         logger.info("Built authorities for user {}: {}", user.getEmail(), authorities);
         
-        // Return Spring Security User object
-        return new org.springframework.security.core.userdetails.User(
-            user.getEmail(),
-            user.getPassword(),
-            user.isActive(),
-            true, // account non-expired
-            true, // credentials non-expired
-            true, // account non-locked
-            authorities
-        );
+        // Return our custom UserDetails implementation with additional user information
+        return new CustomUserDetails(user, authorities);
     }
     
     /**

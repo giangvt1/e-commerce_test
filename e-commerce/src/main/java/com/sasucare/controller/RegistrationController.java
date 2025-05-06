@@ -2,6 +2,7 @@ package com.sasucare.controller;
 
 import com.sasucare.model.Role;
 import com.sasucare.model.User;
+import com.sasucare.repository.RoleRepository;
 import com.sasucare.service.RoleService;
 import com.sasucare.service.UserService;
 import jakarta.validation.Valid;
@@ -26,11 +27,13 @@ public class RegistrationController {
 
     private final UserService userService;
     private final RoleService roleService;
+    private final RoleRepository roleRepository;
 
     @Autowired
-    public RegistrationController(UserService userService, RoleService roleService) {
+    public RegistrationController(UserService userService, RoleService roleService, RoleRepository roleRepository) {
         this.userService = userService;
         this.roleService = roleService;
+        this.roleRepository = roleRepository;
     }
 
     /**
@@ -89,8 +92,13 @@ public class RegistrationController {
         }
 
         try {
-            // Set default roles (CUSTOMER for regular signups)
-            Role customerRole = roleService.getOrCreateCustomerRole();
+            // Set default roles (CUSTOMER with ID 2 for regular signups)
+            Role customerRole = roleRepository.findById(2L)
+                .orElseGet(() -> roleService.getOrCreateCustomerRole());
+            
+            // Log the role ID that was assigned
+            System.out.println("Assigning customer role with ID: " + customerRole.getId());
+            
             Set<Role> roles = new HashSet<>();
             roles.add(customerRole);
             user.setRoles(roles);
@@ -152,8 +160,13 @@ public class RegistrationController {
         }
 
         try {
-            // Set seller role
-            Role sellerRole = roleService.getOrCreateSellerRole();
+            // Set seller role with ID 3
+            Role sellerRole = roleRepository.findById(3L)
+                .orElseGet(() -> roleService.getOrCreateSellerRole());
+            
+            // Log the role ID that was assigned
+            System.out.println("Assigning seller role with ID: " + sellerRole.getId());
+            
             Set<Role> roles = new HashSet<>();
             roles.add(sellerRole);
             user.setRoles(roles);

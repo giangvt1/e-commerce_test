@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title th:text="${product.name} + ' - SASUCare'">Product Details - SASUCare</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .product-img-main {
+            max-height: 400px;
+            object-fit: contain;
+            width: 100%;
+        }
+        
+        .product-img-thumb {
+            width: 80px;
+            height: 80px;
+            object-fit: cover;
+            cursor: pointer;
+            border: 2px solid transparent;
+            transition: all 0.2s;
+        }
+        
+        .product-img-thumb.active {
+            border-color: #0d6efd;
+        }
+        
+        .product-img-thumb:hover {
+            transform: scale(1.05);
+        }
+        
+        .price-tag {
+            font-size: 1.8rem;
+            font-weight: 600;
+            color: #dc3545;
+        }
+        
+        .seller-info {
+            border-left: 3px solid #0d6efd;
+            padding-left: 15px;
+        }
+        
+        .quantity-selector {
+            max-width: 120px;
+        }
+        
+        .product-description {
+            white-space: pre-line;
+        }
+        
+        .related-product-card {
+            transition: transform 0.2s, box-shadow 0.2s;
+            height: 100%;
+        }
+        
+        .related-product-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+        
+        .related-product-img {
+            height: 180px;
+            object-fit: cover;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<div th:replace="fragments/header :: header"></div>
+
+<!-- Flash Messages -->
+<div class="container mt-3">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<!-- Breadcrumb -->
+<div class="container mt-3">
+    <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+            <li class="breadcrumb-item"><a th:href="@{/}">Home</a></li>
+            <li class="breadcrumb-item" th:if="${product.category != null}">
+                <a th:href="@{/(categoryId=${product.category.id})}" th:text="${product.category.name}">Category</a>
+            </li>
+            <li class="breadcrumb-item active" aria-current="page" th:text="${product.name}">Product Name</li>
+        </ol>
+    </nav>
+</div>
+
+<!-- Product Detail -->
+<div class="container my-5">
+    <div class="row">
+        <!-- Product Images -->
+        <div class="col-md-6 mb-4">
+            <div class="text-center mb-3">
+                <img th:src="${product.primaryImageUrl != null ? product.primaryImageUrl : 'https://via.placeholder.com/400x400?text=No+Image'}" 
+                     class="product-img-main rounded" alt="Product Image" id="mainProductImage">
+            </div>
+            
+            <!-- Thumbnail Images (if available) -->
+            <div class="d-flex justify-content-center mt-2" th:if="${product.images != null && !product.images.empty}">
+                <div class="mx-1" th:each="image : ${product.images}">
+                    <img th:src="${image.url}" class="product-img-thumb rounded" alt="Product Thumbnail"
+                         onclick="document.getElementById('mainProductImage').src = this.src;
+                                 document.querySelectorAll('.product-img-thumb').forEach(thumb => thumb.classList.remove('active'));
+                                 this.classList.add('active');">
+                </div>
+            </div>
+        </div>
+        
+        <!-- Product Information -->
+        <div class="col-md-6">
+            <h2 class="mb-3" th:text="${product.name}">Product Name</h2>
+            
+            <!-- Price -->
+            <p class="price-tag mb-4" th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + '₫'">₫0</p>
+            
+            <!-- Stock Status -->
+            <p class="mb-4">
+                <span th:if="${product.stockQuantity > 0}" class="badge bg-success">In Stock</span>
+                <span th:if="${product.stockQuantity <= 0}" class="badge bg-danger">Out of Stock</span>
+                <span class="ms-2" th:text="${product.stockQuantity} + ' units available'">0 units available</span>
+            </p>
+            
+            <!-- Seller Info -->
+            <div class="seller-info mb-4">
+                <p class="mb-1"><strong>Sold by:</strong> <span th:text="${product.seller.shopName != null ? product.seller.shopName : (product.seller.firstName + ' ' + product.seller.lastName)}">Seller Name</span></p>
+            </div>
+            
+            <!-- Add to Cart Form -->
+            <form th:action="@{/cart/add}" method="post" class="mb-4">
+                <input type="hidden" name="productId" th:value="${product.id}">
+                
+                <div class="mb-3">
+                    <label for="quantity" class="form-label">Quantity:</label>
+                    <div class="input-group quantity-selector">
+                        <button type="button" class="btn btn-outline-primary" onclick="decrementQuantity()">
+                            <i class="fas fa-minus"></i>
+                        </button>
+                        <input type="number" id="quantity" name="quantity" class="form-control text-center" 
+                               value="1" min="1" th:max="${product.stockQuantity}">
+                        <button type="button" class="btn btn-outline-primary" onclick="incrementQuantity()">
+                            <i class="fas fa-plus"></i>
+                        </button>
+                    </div>
+                </div>
+                
+                <button type="submit" class="btn btn-primary btn-lg" th:disabled="${product.stockQuantity <= 0}">
+                    <i class="fas fa-shopping-cart me-2"></i> Add to Cart
+                </button>
+                
+                <button type="button" class="btn btn-outline-danger btn-lg ms-2">
+                    <i class="fas fa-heart"></i>
+                </button>
+            </form>
+            
+            <!-- Product Description -->
+            <div class="mt-4">
+                <h5>Description</h5>
+                <p class="product-description" th:text="${product.description != null ? product.description : 'No description available.'}">No description available.</p>
+            </div>
+            
+            <!-- Product SKU -->
+            <p class="text-muted mt-4" th:if="${product.sku != null}">SKU: <span th:text="${product.sku}">SKU123</span></p>
+        </div>
+    </div>
+    
+    <!-- Related Products -->
+    <div class="mt-5" th:if="${relatedProducts != null && !relatedProducts.empty}">
+        <h3 class="mb-4">Related Products</h3>
+        <div class="row">
+            <div class="col-md-3 col-sm-6 mb-4" th:each="relatedProduct : ${relatedProducts}">
+                <div class="card related-product-card h-100">
+                    <img th:src="${relatedProduct.primaryImageUrl != null ? relatedProduct.primaryImageUrl : 'https://via.placeholder.com/300x180?text=No+Image'}" 
+                         class="card-img-top related-product-img" alt="Related Product">
+                    <div class="card-body">
+                        <h5 class="card-title" th:text="${relatedProduct.name}">Related Product</h5>
+                        <p class="card-text text-danger fw-bold" th:text="${#numbers.formatDecimal(relatedProduct.price, 0, 'COMMA', 0, 'POINT')} + '₫'">₫0</p>
+                        <a th:href="@{'/product/' + ${relatedProduct.id}}" class="btn btn-outline-primary stretched-link">View Details</a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    function incrementQuantity() {
+        const input = document.getElementById('quantity');
+        const max = parseInt(input.getAttribute('max'));
+        const currentValue = parseInt(input.value);
+        
+        if (currentValue < max) {
+            input.value = currentValue + 1;
+        }
+    }
+    
+    function decrementQuantity() {
+        const input = document.getElementById('quantity');
+        const currentValue = parseInt(input.value);
+        
+        if (currentValue > 1) {
+            input.value = currentValue - 1;
+        }
+    }
+</script>
+</body>
+</html>

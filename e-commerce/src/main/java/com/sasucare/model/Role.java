@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -33,6 +34,7 @@ public class Role {
     private LocalDateTime updatedAt;
     
     @ManyToMany(mappedBy = "roles")
+    @ToString.Exclude
     private Set<User> users = new HashSet<>();
     
     @ManyToMany(fetch = FetchType.EAGER)

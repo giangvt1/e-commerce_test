@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 
 @Repository
 public interface ProductRepository extends JpaRepository<Product, Long> {
@@ -23,4 +24,11 @@ public interface ProductRepository extends JpaRepository<Product, Long> {
     // Custom query example
     @Query("SELECT p FROM Product p WHERE p.stockQuantity > 0 AND p.status = 'ACTIVE' ORDER BY p.name")
     List<Product> findAvailableProducts();
+    
+    // Find products by status
+    List<Product> findByStatus(String status);
+    
+    // Find product by ID with seller information fully loaded
+    @Query("SELECT p FROM Product p LEFT JOIN FETCH p.seller WHERE p.id = :id")
+    Optional<Product> findByIdWithSeller(Long id);
 }

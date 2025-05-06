@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
@@ -33,6 +34,7 @@ public class Category {
     private LocalDateTime updatedAt;
     
     @OneToMany(mappedBy = "category")
+    @ToString.Exclude
     private List<Product> products = new ArrayList<>();
     
     @PrePersist

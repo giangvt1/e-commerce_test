@@ -85,89 +85,6 @@
             padding: 5px 10px;
             margin-right: 5px;
         }
-        
-        /* Status badges */
-        .badge-active {
-            background-color: #28a745;
-        }
-        
-        .badge-inactive {
-            background-color: #dc3545;
-        }
-        
-        .badge-draft {
-            background-color: #6c757d;
-        }
-        
-        /* User dropdown styles */
-        .user-dropdown {
-            position: relative;
-            display: inline-block;
-        }
-        
-        .user-dropdown-toggle {
-            background: none;
-            border: none;
-            color: #333;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            padding: 8px 12px;
-            border-radius: 4px;
-            transition: background-color 0.2s;
-        }
-        
-        .user-dropdown-toggle:hover {
-            background-color: rgba(0, 0, 0, 0.05);
-        }
-        
-        .user-dropdown-menu {
-            position: absolute;
-            top: 100%;
-            right: 0;
-            background-color: white;
-            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-            border-radius: 4px;
-            padding: 8px 0;
-            min-width: 180px;
-            display: none;
-            z-index: 1000;
-        }
-        
-        .user-dropdown-menu.show {
-            display: block;
-        }
-        
-        .user-dropdown-menu a {
-            display: block;
-            padding: 8px 16px;
-            color: #333;
-            text-decoration: none;
-            transition: background-color 0.2s;
-        }
-        
-        .user-dropdown-menu a:hover {
-            background-color: #f5f5f5;
-            color: #007bff;
-        }
-        
-        /* Image preview */
-        .image-preview-container {
-            width: 100%;
-            max-width: 300px;
-            margin-bottom: 15px;
-            border: 1px dashed #ddd;
-            border-radius: 5px;
-            padding: 10px;
-            text-align: center;
-        }
-        
-        .image-preview {
-            max-width: 100%;
-            max-height: 200px;
-            display: none;
-            margin: 0 auto 10px;
-        }
     </style>
 </head>
 <body>
@@ -239,6 +156,7 @@
                                             </div>
                                         </td>
                                     </tr>
+                                    
                                     <tr th:each="product : ${products}">
                                         <td>
                                             <img th:if="${product.imageUrl}" th:src="${product.imageUrl}" alt="Product image" class="product-image-preview">
@@ -251,44 +169,54 @@
                                             <small class="text-muted" th:text="${product.category != null ? product.category.name : 'No category'}">Category</small>
                                         </td>
                                         <td th:text="${product.sku != null ? product.sku : '-'}">SKU123</td>
-                                        <td th:text="${#numbers.formatDecimal(product.price, 0, 'COMMA', 0, 'POINT')} + ' đ'">100,000 đ</td>
+                                        <td><span th:text="${product.price}"></span> đ</td>
                                         <td th:text="${product.stockQuantity}">10</td>
                                         <td>
                                             <span th:if="${product.status == 'ACTIVE'}" class="badge bg-success">Active</span>
                                             <span th:if="${product.status == 'INACTIVE'}" class="badge bg-danger">Inactive</span>
                                             <span th:if="${product.status == 'DRAFT'}" class="badge bg-secondary">Draft</span>
+                                            <span th:if="${product.status == 'PENDING_APPROVAL'}" class="badge bg-warning text-dark">Pending Approval</span>
+                                            <span th:if="${product.status == 'REJECTED'}" class="badge bg-danger">Rejected</span>
                                         </td>
                                         <td>
                                             <div class="btn-group">
                                                 <a th:href="@{'/seller/products/edit/' + ${product.id}}" class="btn btn-sm btn-outline-primary btn-action">
                                                     <i class="fas fa-edit"></i>
                                                 </a>
+                                                
+                                                <!-- Resubmit button for rejected products -->
+                                                <form th:if="${product.status == 'REJECTED'}" th:action="@{'/seller/products/resubmit/' + ${product.id}}" method="post" class="d-inline">
+                                                    <button type="submit" class="btn btn-sm btn-outline-warning btn-action" data-bs-toggle="tooltip" title="Resubmit for approval">
+                                                        <i class="fas fa-redo-alt"></i>
+                                                    </button>
+                                                </form>
+                                                
                                                 <button type="button" class="btn btn-sm btn-outline-danger btn-action" 
-                                                        data-bs-toggle="modal" th:data-bs-target="'#deleteProductModal-' + ${product.id}">
+                                                        data-bs-toggle="modal" data-bs-target="#deleteProductModal"
+                                                        th:attr="data-product-id=${product.id},data-product-name=${product.name}"
+                                                        aria-label="Delete product">
                                                     <i class="fas fa-trash"></i>
                                                 </button>
-                                            </div>
-                                            
-                                            <!-- Delete Product Modal -->
-                                            <div class="modal fade" th:id="'deleteProductModal-' + ${product.id}" tabindex="-1" 
-                                                aria-labelledby="'deleteProductModalLabel-' + ${product.id}" aria-hidden="true">
-                                                <div class="modal-dialog">
-                                                    <div class="modal-content">
-                                                        <div class="modal-header">
-                                                            <h5 class="modal-title" th:id="'deleteProductModalLabel-' + ${product.id}">Confirm Delete</h5>
-                                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                                        </div>
-                                                        <div class="modal-body">
-                                                            Are you sure you want to delete the product "<span th:text="${product.name}"></span>"? This action cannot be undone.
-                                                        </div>
-                                                        <div class="modal-footer">
-                                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                                            <form th:action="@{'/seller/products/delete/' + ${product.id}}" method="post">
-                                                                <button type="submit" class="btn btn-danger">Delete</button>
-                                                            </form>
-                                                        </div>
-                                                    </div>
-                                                </div>
+                                                
+                                                <!-- Info button for rejected products -->
+                                                <button th:if="${product.status == 'REJECTED'}" type="button" 
+                                                        class="btn btn-sm btn-outline-info btn-action"
+                                                        data-bs-toggle="modal"
+                                                        data-bs-target="#rejectionReasonModal"
+                                                        th:attr="data-product-id=${product.id},
+                                                                 data-product-name=${product.name},
+                                                                 data-reason=${
+                                                                    #strings.contains(product.description,'[ADMIN REJECTION NOTE:')
+                                                                      ? #strings.trim(
+                                                                          #strings.substringBefore(
+                                                                            #strings.substringAfter(product.description,'[ADMIN REJECTION NOTE:'),']'
+                                                                          )
+                                                                        )
+                                                                      : 'No specific reason provided.'
+                                                                  }"
+                                                        aria-label="View rejection reason">
+                                                    <i class="fas fa-info-circle"></i>
+                                                </button>
                                             </div>
                                         </td>
                                     </tr>
@@ -335,7 +263,7 @@
                             <div class="col-md-4">
                                 <div class="mb-3">
                                     <label for="productPrice" class="form-label">Price (VND)*</label>
-                                    <input type="number" class="form-control" id="productPrice" th:field="*{price}" min="0" required>
+                                    <input type="number" class="form-control" id="productPrice" th:field="*{price}" min="0" max="99999999.99" step="0.01" required>
                                 </div>
                             </div>
                             <div class="col-md-4">
@@ -366,7 +294,8 @@
                                         Upload product image (JPEG, PNG, GIF). Maximum file size: 5MB
                                     </small>
                                 </div>
-                                <div class="image-preview-container">
+                                
+                                <div class="text-center mt-3">
                                     <img id="imagePreview" class="image-preview">
                                     <div id="noImageText" class="text-muted">
                                         <i class="fas fa-image fa-3x mb-2"></i>
@@ -396,6 +325,56 @@
         </div>
     </div>
     
+    <!-- DELETE PRODUCT MODAL -->
+    <div class="modal fade" id="deleteProductModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Confirm Delete</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    Are you sure you want to delete "<span id="dp-name"></span>"? This cannot be undone.
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <form id="dp-form" method="post" th:action="@{/seller/products/delete/__ID__}">
+                        <button class="btn btn-danger">Delete</button>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    
+    <!-- REJECTION REASON MODAL -->
+    <div class="modal fade" id="rejectionReasonModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header bg-danger text-white">
+                    <h5 class="modal-title">
+                        <i class="fas fa-exclamation-circle me-2"></i> Product Rejected
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Product:</strong> <span id="rr-name"></span></p>
+                    <div class="alert alert-secondary">
+                        <h6 class="alert-heading">Rejection Reason:</h6>
+                        <p id="rr-reason"></p>
+                    </div>
+                    <div class="alert alert-info">
+                        <h6 class="alert-heading">What to do next?</h6>
+                        <p>Please review your product based on the rejection reason provided above, make the necessary changes, and resubmit for approval.</p>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button id="rr-resubmit-btn" class="btn btn-primary">Resubmit Product</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    
     <!-- Footer -->
     <div th:replace="fragments/footer :: footer"></div>
     
@@ -403,52 +382,78 @@
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     
+    <!-- Modal JS initialization -->
     <script>
         document.addEventListener('DOMContentLoaded', function() {
-            // Dropdown functionality for user menu
-            const userMenuButton = document.getElementById('userMenuButton');
-            const userDropdownMenu = document.getElementById('userDropdownMenu');
-            
-            if (userMenuButton && userDropdownMenu) {
-                userMenuButton.addEventListener('click', function(e) {
-                    e.preventDefault();
-                    e.stopPropagation();
-                    userDropdownMenu.classList.toggle('show');
-                });
-                
-                // Close dropdown when clicking outside
-                document.addEventListener('click', function(e) {
-                    if (userDropdownMenu.classList.contains('show') && 
-                        !userMenuButton.contains(e.target) && 
-                        !userDropdownMenu.contains(e.target)) {
-                        userDropdownMenu.classList.remove('show');
-                    }
-                });
-            }
-            
             // Image preview functionality
-            const imageInput = document.getElementById('productImage');
+            const productImageInput = document.getElementById('productImage');
             const imagePreview = document.getElementById('imagePreview');
-            const noImageText = document.getElementById('noImageText');
             
-            if (imageInput && imagePreview && noImageText) {
-                imageInput.addEventListener('change', function() {
-                    if (this.files && this.files[0]) {
+            if (productImageInput) {
+                productImageInput.addEventListener('change', function() {
+                    const file = this.files[0];
+                    if (file) {
                         const reader = new FileReader();
-                        
-                        reader.onload = function(e) {
-                            imagePreview.src = e.target.result;
+                        reader.onload = function(event) {
+                            imagePreview.innerHTML = `<img src="${event.target.result}" class="img-thumbnail preview-image">`;
                             imagePreview.style.display = 'block';
-                            noImageText.style.display = 'none';
                         }
-                        
-                        reader.readAsDataURL(this.files[0]);
+                        reader.readAsDataURL(file);
                     } else {
+                        imagePreview.innerHTML = '';
                         imagePreview.style.display = 'none';
-                        noImageText.style.display = 'block';
                     }
                 });
             }
+            
+            // Initialize tooltips
+            const tooltipTriggerList = [].slice.call(document.querySelectorAll('[data-bs-toggle="tooltip"]'));
+            tooltipTriggerList.map(function (tooltipTriggerEl) {
+                return new bootstrap.Tooltip(tooltipTriggerEl);
+            });
+        });
+    </script>
+    
+    <!-- Modal initialization JS - placed after Bootstrap bundle -->
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            // DELETE modal population
+            var delModal = document.getElementById('deleteProductModal');
+            delModal.addEventListener('show.bs.modal', function(e) {
+                var btn  = e.relatedTarget;
+                var id   = btn.getAttribute('data-product-id');
+                var name = btn.getAttribute('data-product-name');
+                
+                // set the text
+                document.getElementById('dp-name').textContent = name;
+                
+                // update the form action URL
+                var form = document.getElementById('dp-form');
+                form.setAttribute('action', '/seller/products/delete/' + id);
+            });
+            
+            // REJECTION REASON modal population
+            var rrModal = document.getElementById('rejectionReasonModal');
+            rrModal.addEventListener('show.bs.modal', function(e) {
+                var btn    = e.relatedTarget;
+                var id     = btn.getAttribute('data-product-id');
+                var name   = btn.getAttribute('data-product-name');
+                var reason = btn.getAttribute('data-reason');
+                
+                document.getElementById('rr-name').textContent = name;
+                document.getElementById('rr-reason').textContent = reason;
+                
+                // Set up resubmit button action
+                var resubmitBtn = document.getElementById('rr-resubmit-btn');
+                resubmitBtn.onclick = function() {
+                    var form = document.createElement('form');
+                    form.method = 'post';
+                    form.action = '/seller/products/resubmit/' + id;
+                    
+                    document.body.appendChild(form);
+                    form.submit();
+                };
+            });
         });
     </script>
 </body>

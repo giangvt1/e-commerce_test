@@ -93,12 +93,14 @@
                     <div class="user-dropdown" sec:authorize="isAuthenticated()">
                         <button type="button" class="user-dropdown-toggle" id="userMenuButton">
                             <i class="fas fa-user-circle"></i>
-                            <span sec:authentication="name">Username</span>
+                            <span th:if="${currentUser != null}" th:text="${currentUser.firstName}">User</span>
+                            <span th:unless="${currentUser != null}" sec:authentication="name">User</span>
                             <i class="fas fa-chevron-down"></i>
                         </button>
                         <div class="user-dropdown-menu" id="userDropdownMenu">
                             <a th:href="@{/account/profile}"><i class="fas fa-user me-2"></i> Profile</a>
                             <a th:href="@{/account/orders}"><i class="fas fa-shopping-bag me-2"></i> Orders</a>
+                            <a sec:authorize="hasRole('ADMIN')" th:href="@{/admin/dashboard}"><i class="fas fa-tachometer-alt me-2"></i> Admin Dashboard</a>
                             <a sec:authorize="hasRole('SELLER')" th:href="@{/seller/dashboard}"><i class="fas fa-store me-2"></i> Seller Dashboard</a>
                             <a href="javascript:void(0)" onclick="document.getElementById('logout-form').submit();">
                                 <i class="fas fa-sign-out-alt me-2"></i> Logout
@@ -112,11 +114,6 @@
                         <span class="cart-count" th:if="${session.cart != null and !session.cart.isEmpty()}" 
                               th:text="${session.cart.itemCount}">0</span>
                     </a>
-                    
-                    <div class="language-selector">
-                        <a href="#" class="me-2">VN</a>
-                        <a href="#">EN</a>
-                    </div>
                 </div>
             </div>
         </div>

@@ -4,6 +4,7 @@ import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
+import lombok.ToString;
 
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
@@ -45,8 +46,7 @@ public class Product {
     @Column(name = "primary_image_url")
     private String primaryImageUrl;
     
-    @Column(name = "image_url")
-    private String imageUrl;
+    // imageUrl column removed and consolidated with primaryImageUrl
     
     // Remove database mapping but keep the field for compatibility
     @Transient
@@ -57,13 +57,16 @@ public class Product {
     
     @ManyToOne
     @JoinColumn(name = "seller_id", nullable = false)
+    @ToString.Exclude
     private User seller;
     
     @ManyToOne
     @JoinColumn(name = "category_id", nullable = true)
+    @ToString.Exclude
     private Category category;
     
     @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    @ToString.Exclude
     private List<ProductImage> images = new ArrayList<>();
     
     @Column(name = "created_at", nullable = false)
@@ -101,15 +104,12 @@ public class Product {
     
     // For compatibility with forms
     public String getImageUrl() {
-        return imageUrl != null ? imageUrl : primaryImageUrl;
+        return primaryImageUrl;
     }
     
     public void setImageUrl(String imageUrl) {
-        this.imageUrl = imageUrl;
-        // Also set primaryImageUrl for consistency
-        if (imageUrl != null) {
-            this.primaryImageUrl = imageUrl;
-        }
+        // Set primaryImageUrl directly since imageUrl field was removed
+        this.primaryImageUrl = imageUrl;
     }
     
     public String getBadgeText() {

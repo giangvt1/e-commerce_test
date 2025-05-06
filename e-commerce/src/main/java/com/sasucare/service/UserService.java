@@ -8,7 +8,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
+import java.util.stream.Collectors;
 
 @Service
 public class UserService {
@@ -24,6 +26,29 @@ public class UserService {
     
     public User findByEmail(String email) {
         return userRepository.findByEmail(email);
+    }
+    
+    /**
+     * Find all users with a specific role
+     * @param roleName The role name to search for (e.g., ROLE_ADMIN, ROLE_SELLER)
+     * @return List of users with the specified role
+     */
+    public List<User> findByRoleName(String roleName) {
+        // This would ideally be a custom query in the repository
+        // For now, we'll fetch all users and filter by role
+        List<User> allUsers = userRepository.findAll();
+        return allUsers.stream()
+                .filter(user -> user.getRoles().stream()
+                        .anyMatch(role -> role.getName().equals(roleName)))
+                .collect(Collectors.toList());
+    }
+    
+    /**
+     * Find all users
+     * @return List of all users
+     */
+    public List<User> findAll() {
+        return userRepository.findAll();
     }
     
     public User saveUser(User user) {
@@ -79,10 +104,6 @@ public class UserService {
         
         // Save user
         User savedUser = userRepository.save(user);
-        
-        // TODO: Send verification email with token
-        // This would typically call an email service like JavaMailSender
-        // sendVerificationEmail(savedUser.getEmail(), token);
         
         return savedUser;
     }

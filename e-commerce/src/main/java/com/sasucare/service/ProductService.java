@@ -62,10 +62,11 @@ public class ProductService {
             return new ArrayList<>();
         }
     }
-    
+
     public Product findById(Long id) {
         try {
-            return productRepository.findById(id).orElse(null);
+            // Use the optimized method that eagerly loads seller information
+            return productRepository.findByIdWithSeller(id).orElse(null);
         } catch (Exception e) {
             logger.warn("Error finding product by ID, using sample data fallback", e);
             // Fallback to sample data for development
@@ -75,7 +76,7 @@ public class ProductService {
                     .orElse(null);
         }
     }
-    
+
     public List<Product> findBySellerEmail(String email) {
         try {
             // For production this would be:
@@ -90,7 +91,7 @@ public class ProductService {
                 .collect(Collectors.toList());
         }
     }
-    
+
     public Optional<Product> getProductById(Long id) {
         return productRepository.findById(id);
     }
@@ -131,6 +132,20 @@ public class ProductService {
     
     public List<Product> searchProducts(String keyword) {
         return productRepository.findByNameContainingIgnoreCase(keyword);
+    }
+    
+    /**
+     * Find products by status
+     * @param status Status to filter by (e.g., ACTIVE, PENDING_APPROVAL, REJECTED)
+     * @return List of products with the specified status
+     */
+    public List<Product> findByStatus(String status) {
+        try {
+            return productRepository.findByStatus(status);
+        } catch (Exception e) {
+            logger.error("Error finding products by status: {}", e.getMessage(), e);
+            return new ArrayList<>();
+        }
     }
     
     public boolean updateProductQuantity(Long productId, int newQuantity) {

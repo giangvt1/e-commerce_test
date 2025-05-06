@@ -123,7 +123,7 @@
                 <div class="px-3 mb-4">
                     <div class="d-flex align-items-center">
                         <div class="flex-shrink-0">
-                            <img src="https://via.placeholder.com/50" alt="Shop Logo" class="rounded-circle">
+                            <img src="./uploads/logo.png" alt="Shop Logo" class="rounded-circle">
                         </div>
                         <div class="flex-grow-1 ms-3">
                             <h6 class="mb-0" th:text="${seller.shopName}">Shop Name</h6>
@@ -231,6 +231,8 @@
                                                     <span th:if="${product.status == 'ACTIVE'}" class="badge bg-success">Active</span>
                                                     <span th:if="${product.status == 'INACTIVE'}" class="badge bg-secondary">Inactive</span>
                                                     <span th:if="${product.status == 'OUT_OF_STOCK'}" class="badge bg-danger">Out of Stock</span>
+                                                    <span th:if="${product.status == 'PENDING_APPROVAL'}" class="badge bg-warning text-dark">Pending Approval</span>
+                                                    <span th:if="${product.status == 'REJECTED'}" class="badge bg-danger">Rejected</span>
                                                 </td>
                                             </tr>
                                         </tbody>

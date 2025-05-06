@@ -21,6 +21,8 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.time.LocalDateTime;
+import java.math.BigDecimal;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -99,7 +101,7 @@ public class SellerController {
      */
     @GetMapping("/products")
     @Secured("ROLE_SELLER")
-    public String productManagement(Model model) {
+    public String products(Model model) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User seller = userService.findByEmail(auth.getName());
         
@@ -108,20 +110,47 @@ public class SellerController {
             return "redirect:/login";
         }
         
-        // Get all products for this seller
-        List<Product> products = productService.findBySellerEmail(seller.getEmail());
-        model.addAttribute("products", products);
-        
-        // Get all categories for product form
-        List<Category> categories = categoryService.findAll();
-        model.addAttribute("categories", categories);
-        
-        // Add empty product for the add form
-        Product newProduct = new Product();
-        // Set default values
-        newProduct.setStatus("ACTIVE");
-        newProduct.setStockQuantity(1);
-        model.addAttribute("newProduct", newProduct);
+        try {
+            // Get seller's products
+            List<Product> sellerProducts = productService.findBySellerEmail(seller.getEmail());
+            
+            // Separate products by status
+            List<Product> activeProducts = new ArrayList<>();
+            List<Product> pendingProducts = new ArrayList<>();
+            List<Product> rejectedProducts = new ArrayList<>();
+            List<Product> otherProducts = new ArrayList<>();
+            
+            for (Product product : sellerProducts) {
+                switch (product.getStatus()) {
+                    case "ACTIVE":
+                        activeProducts.add(product);
+                        break;
+                    case "PENDING_APPROVAL":
+                        pendingProducts.add(product);
+                        break;
+                    case "REJECTED":
+                        rejectedProducts.add(product);
+                        break;
+                    default:
+                        otherProducts.add(product);
+                }
+            }
+            
+            // Get all categories for the add product form
+            List<Category> categories = categoryService.getAllCategories();
+            
+            model.addAttribute("seller", seller);
+            model.addAttribute("products", sellerProducts);
+            model.addAttribute("activeProducts", activeProducts);
+            model.addAttribute("pendingProducts", pendingProducts);
+            model.addAttribute("rejectedProducts", rejectedProducts);
+            model.addAttribute("otherProducts", otherProducts);
+            model.addAttribute("categories", categories);
+            model.addAttribute("newProduct", new Product());
+        } catch (Exception e) {
+            logger.error("Error fetching seller products: {}", e.getMessage(), e);
+            model.addAttribute("errorMessage", "Failed to load products: " + e.getMessage());
+        }
         
         return "seller/products";
     }
@@ -143,8 +172,20 @@ public class SellerController {
         }
         
         try {
+            // Validate price to prevent arithmetic overflow
+            if (product.getPrice() != null) {
+                BigDecimal maxValue = new BigDecimal("99999999.99");
+                if (product.getPrice().compareTo(maxValue) > 0) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Price must be less than 100,000,000");
+                    return "redirect:/seller/products";
+                }
+            }
+            
             // Set the product's seller
             product.setSeller(seller);
+            
+            // Set initial status to pending approval
+            product.setStatus("PENDING_APPROVAL");
             
             // Set timestamps
             LocalDateTime now = LocalDateTime.now();
@@ -168,7 +209,7 @@ public class SellerController {
             // Save the product
             Product savedProduct = productService.save(product);
             
-            logger.info("Product added successfully: {}", savedProduct);
+            logger.info("Product added successfully: ID={}, Name={}, Price={}", savedProduct.getId(), savedProduct.getName(), savedProduct.getPrice());
             redirectAttributes.addFlashAttribute("successMessage", "Product added successfully!");
         } catch (Exception e) {
             logger.error("Error adding product: {}", e.getMessage(), e);
@@ -210,14 +251,75 @@ public class SellerController {
         
         return "seller/product-edit";
     }
+    
+    /**
+     * Resubmit a rejected product for approval
+     */
+    @PostMapping("/products/resubmit/{id}")
+    @Secured("ROLE_SELLER")
+    public String resubmitProduct(@PathVariable Long id, RedirectAttributes redirectAttributes) {
+        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+        User seller = userService.findByEmail(auth.getName());
+        
+        if (seller == null) {
+            logger.error("Seller not found for email: {}", auth.getName());
+            return "redirect:/login";
+        }
+        
+        try {
+            // Get the product
+            Product product = productService.findById(id);
+            
+            // Verify product exists and belongs to this seller
+            if (product == null) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Product not found");
+                return "redirect:/seller/products";
+            }
+            
+            if (!seller.getId().equals(product.getSeller().getId())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "You do not have permission to edit this product");
+                return "redirect:/seller/products";
+            }
+            
+            // Check if product is in REJECTED status
+            if (!"REJECTED".equals(product.getStatus())) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Only rejected products can be resubmitted");
+                return "redirect:/seller/products";
+            }
+            
+            // Clear any rejection notes by removing from description
+            String description = product.getDescription();
+            if (description != null && description.contains("[ADMIN REJECTION NOTE:")) {
+                description = description.substring(0, description.indexOf("\n\n[ADMIN REJECTION NOTE:"));
+                product.setDescription(description);
+            }
+            
+            // Change status to PENDING_APPROVAL
+            product.setStatus("PENDING_APPROVAL");
+            
+            // Update timestamp
+            product.setUpdatedAt(LocalDateTime.now());
+            
+            // Save product
+            productService.save(product);
+            
+            logger.info("Product resubmitted for approval: {}", product.getId());
+            redirectAttributes.addFlashAttribute("successMessage", "Product resubmitted for approval successfully");
+        } catch (Exception e) {
+            logger.error("Error resubmitting product: {}", e.getMessage(), e);
+            redirectAttributes.addFlashAttribute("errorMessage", "Failed to resubmit product: " + e.getMessage());
+        }
+        
+        return "redirect:/seller/products";
+    }
 
     /**
      * Handle product update
      */
     @PostMapping("/products/update/{id}")
     @Secured("ROLE_SELLER")
-    public String updateProduct(@PathVariable("id") Long id,
-                                @ModelAttribute("product") Product product,
+    public String updateProduct(@PathVariable Long id,
+                                @ModelAttribute Product product,
                                 @RequestParam(value = "productImage", required = false) MultipartFile productImage,
                                 RedirectAttributes redirectAttributes) {
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
@@ -241,6 +343,15 @@ public class SellerController {
         }
         
         try {
+            // Validate price to prevent arithmetic overflow
+            if (product.getPrice() != null) {
+                BigDecimal maxValue = new BigDecimal("99999999.99");
+                if (product.getPrice().compareTo(maxValue) > 0) {
+                    redirectAttributes.addFlashAttribute("errorMessage", "Price must be less than 100,000,000");
+                    return "redirect:/seller/products";
+                }
+            }
+            
             // Update product fields but preserve seller and creation date
             product.setId(id);
             product.setSeller(existingProduct.getSeller());

@@ -1,0 +1,364 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Manage Users - Admin Dashboard</title>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" th:href="@{/css/main.css}">
+    <style>
+        .seller-sidebar {
+            background-color: #2c3e50;
+            color: #fff;
+            min-height: calc(100vh - 72px);
+            padding-top: 20px;
+        }
+
+        .seller-sidebar .nav-link {
+            color: #ecf0f1;
+            padding: 12px 20px;
+            margin-bottom: 5px;
+            border-radius: 5px;
+            transition: all 0.3s;
+        }
+
+        .seller-sidebar .nav-link:hover,
+        .seller-sidebar .nav-link.active {
+            background-color: #3498db;
+            color: #fff;
+        }
+
+        .seller-sidebar .nav-link i {
+            width: 24px;
+            text-align: center;
+            margin-right: 8px;
+        }
+
+        .user-avatar {
+            width: 40px;
+            height: 40px;
+            object-fit: cover;
+            border-radius: 50%;
+        }
+
+        .section-heading {
+            font-weight: 600;
+            margin-bottom: 20px;
+            padding-bottom: 10px;
+            border-bottom: 1px solid #e0e0e0;
+        }
+
+        .role-badge {
+            margin-right: 5px;
+        }
+    </style>
+</head>
+<body>
+<!-- Header -->
+<div th:replace="fragments/header :: header"></div>
+
+<!-- Flash Messages -->
+<div class="container mt-3">
+    <div th:if="${successMessage}" class="alert alert-success alert-dismissible fade show" role="alert">
+        <span th:text="${successMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+    <div th:if="${errorMessage}" class="alert alert-danger alert-dismissible fade show" role="alert">
+        <span th:text="${errorMessage}"></span>
+        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    </div>
+</div>
+
+<!-- Main Content -->
+<div class="container-fluid py-4">
+    <div class="row">
+        <!-- Sidebar -->
+        <div class="col-lg-2 seller-sidebar">
+            <div class="d-flex justify-content-between align-items-center mb-4 px-3">
+                <h5 class="mb-0">Admin Dashboard</h5>
+                <button class="btn btn-sm btn-outline-light d-lg-none" id="sidebarToggle">
+                    <i class="fas fa-bars"></i>
+                </button>
+            </div>
+            <div class="px-3 mb-4">
+                <div class="d-flex align-items-center">
+                    <div class="flex-shrink-0">
+                        <img src="https://via.placeholder.com/50" alt="Admin Avatar" class="rounded-circle">
+                    </div>
+                    <div class="flex-grow-1 ms-3">
+                        <h6 class="mb-0" th:text="${admin.firstName}">Admin Name</h6>
+                        <small th:text="${admin.email}">admin@example.com</small>
+                    </div>
+                </div>
+            </div>
+            <ul class="nav flex-column">
+                <li class="nav-item">
+                    <a th:href="@{/admin/dashboard}" class="nav-link">
+                        <i class="fas fa-tachometer-alt"></i> Dashboard
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/products}" class="nav-link">
+                        <i class="fas fa-box"></i> Manage Products
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/products/pending}" class="nav-link">
+                        <i class="fas fa-clipboard-check"></i> Pending Approvals
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/categories}" class="nav-link">
+                        <i class="fas fa-tag"></i> Categories
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a th:href="@{/admin/users}" class="nav-link active">
+                        <i class="fas fa-users"></i> Users
+                    </a>
+                </li>
+            </ul>
+        </div>
+
+        <!-- Users Content -->
+        <div class="col-lg-10 px-4">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h4 class="mb-0">Manage Users</h4>
+                <div>
+                    <button class="btn btn-outline-primary me-2" data-bs-toggle="modal" data-bs-target="#filterUsersModal">
+                        <i class="fas fa-filter"></i> Filter
+                    </button>
+                </div>
+            </div>
+
+            <!-- Users List -->
+            <div class="card">
+                <div class="card-body">
+                    <div class="table-responsive">
+                        <table class="table table-hover align-middle">
+                            <thead>
+                            <tr>
+                                <th>User</th>
+                                <th>Email</th>
+                                <th>Roles</th>
+                                <th>Status</th>
+                                <th>Registered</th>
+                                <th>Actions</th>
+                            </tr>
+                            </thead>
+                            <tbody>
+                            <tr th:if="${users.empty}">
+                                <td colspan="6" class="text-center">No users found</td>
+                            </tr>
+                            <tr th:each="user : ${users}" th:if="${!users.empty}">
+                                <td>
+                                    <div class="d-flex align-items-center">
+                                        <img th:src="${user.profileImageUrl != null ? user.profileImageUrl : 'https://via.placeholder.com/40'}" 
+                                             alt="User Avatar" class="user-avatar me-2">
+                                        <div>
+                                            <div th:text="${user.firstName + ' ' + user.lastName}">User Name</div>
+                                            <small class="text-muted" th:text="${user.phoneNumber != null ? user.phoneNumber : 'No phone'}">Phone</small>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td th:text="${user.email}">user@example.com</td>
+                                <td>
+                                    <span th:each="role : ${user.roles}" th:text="${role.name}" 
+                                          th:class="${'badge ' + (role.name == 'ROLE_ADMIN' ? 'bg-danger' : 
+                                                        (role.name == 'ROLE_SELLER' ? 'bg-primary' : 'bg-secondary')) + ' role-badge'}">ROLE</span>
+                                </td>
+                                <td>
+                                    <span th:if="${user.verified}" class="badge bg-success">Verified</span>
+                                    <span th:unless="${user.verified}" class="badge bg-warning">Unverified</span>
+                                </td>
+                                <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd')}">2023-01-01</td>
+                                <td>
+                                    <div class="btn-group">
+                                        <button class="btn btn-sm btn-outline-primary edit-user-btn"
+                                                th:data-user-id="${user.id}"
+                                                data-bs-toggle="modal" data-bs-target="#viewUserModal">
+                                            <i class="fas fa-eye"></i>
+                                        </button>
+                                        <button class="btn btn-sm btn-outline-secondary edit-roles-btn"
+                                                th:data-user-id="${user.id}"
+                                                th:data-user-name="${user.firstName + ' ' + user.lastName}"
+                                                data-bs-toggle="modal" data-bs-target="#editRolesModal">
+                                            <i class="fas fa-user-tag"></i>
+                                        </button>
+                                    </div>
+                                </td>
+                            </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- View User Modal -->
+<div class="modal fade" id="viewUserModal" tabindex="-1" aria-labelledby="viewUserModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="viewUserModalLabel">User Details</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <div id="userDetails">
+                    <!-- User details will be loaded here via AJAX -->
+                    <div class="text-center">
+                        <div class="spinner-border text-primary" role="status">
+                            <span class="visually-hidden">Loading...</span>
+                        </div>
+                        <p class="mt-2">Loading user details...</p>
+                    </div>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Edit Roles Modal -->
+<div class="modal fade" id="editRolesModal" tabindex="-1" aria-labelledby="editRolesModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="editRolesModalLabel">Edit User Roles</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="editRolesForm" th:action="@{/admin/users/roles}" method="post">
+                    <input type="hidden" id="editRolesUserId" name="userId">
+                    <p>Manage roles for <span id="editRolesUserName" class="fw-bold"></span></p>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="ROLE_ADMIN" id="roleAdmin" name="roles">
+                        <label class="form-check-label" for="roleAdmin">
+                            ADMIN - Full system access
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="ROLE_SELLER" id="roleSeller" name="roles">
+                        <label class="form-check-label" for="roleSeller">
+                            SELLER - Can sell products
+                        </label>
+                    </div>
+                    
+                    <div class="form-check mb-2">
+                        <input class="form-check-input" type="checkbox" value="ROLE_CUSTOMER" id="roleCustomer" name="roles">
+                        <label class="form-check-label" for="roleCustomer">
+                            CUSTOMER - Can purchase products
+                        </label>
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="editRolesForm" class="btn btn-primary">Save Changes</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Filter Users Modal -->
+<div class="modal fade" id="filterUsersModal" tabindex="-1" aria-labelledby="filterUsersModalLabel" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="filterUsersModalLabel">Filter Users</h5>
+                <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form id="filterUsersForm" th:action="@{/admin/users}" method="get">
+                    <div class="mb-3">
+                        <label for="roleFilter" class="form-label">Role</label>
+                        <select class="form-select" id="roleFilter" name="role">
+                            <option value="">All Roles</option>
+                            <option value="ROLE_ADMIN">Admin</option>
+                            <option value="ROLE_SELLER">Seller</option>
+                            <option value="ROLE_CUSTOMER">Customer</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="verificationFilter" class="form-label">Verification Status</label>
+                        <select class="form-select" id="verificationFilter" name="verified">
+                            <option value="">All Users</option>
+                            <option value="true">Verified Users</option>
+                            <option value="false">Unverified Users</option>
+                        </select>
+                    </div>
+                    
+                    <div class="mb-3">
+                        <label for="searchFilter" class="form-label">Search</label>
+                        <input type="text" class="form-control" id="searchFilter" name="search" placeholder="Search by name or email...">
+                    </div>
+                </form>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                <button type="submit" form="filterUsersForm" class="btn btn-primary">Apply Filters</button>
+            </div>
+        </div>
+    </div>
+</div>
+
+<!-- Footer -->
+<div th:replace="fragments/footer :: footer"></div>
+
+<!-- Scripts -->
+<script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+    // Set user data for edit roles modal
+    document.querySelectorAll('.edit-roles-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            const userName = this.getAttribute('data-user-name');
+            
+            document.getElementById('editRolesUserId').value = userId;
+            document.getElementById('editRolesUserName').textContent = userName;
+            
+            // Here you would typically load the user's current roles via AJAX
+            // and check the appropriate checkboxes
+            
+            // For example:
+            // fetch(`/admin/users/${userId}/roles`)
+            //     .then(response => response.json())
+            //     .then(data => {
+            //         document.getElementById('roleAdmin').checked = data.roles.includes('ROLE_ADMIN');
+            //         document.getElementById('roleSeller').checked = data.roles.includes('ROLE_SELLER');
+            //         document.getElementById('roleCustomer').checked = data.roles.includes('ROLE_CUSTOMER');
+            //     });
+        });
+    });
+    
+    // View user details
+    document.querySelectorAll('.edit-user-btn').forEach(button => {
+        button.addEventListener('click', function() {
+            const userId = this.getAttribute('data-user-id');
+            
+            // Here you would typically load user details via AJAX
+            // For now, we'll just show a placeholder
+            document.getElementById('userDetails').innerHTML = `
+                <div class="text-center mb-4">
+                    <p>Detailed user information would be loaded here.</p>
+                    <p>User ID: ${userId}</p>
+                </div>
+            `;
+        });
+    });
+
+    // Toggle sidebar on mobile
+    document.getElementById('sidebarToggle')?.addEventListener('click', function() {
+        document.querySelector('.seller-sidebar').classList.toggle('d-none');
+    });
+</script>
+</body>
+</html>

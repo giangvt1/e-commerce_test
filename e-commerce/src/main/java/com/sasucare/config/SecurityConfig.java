@@ -1,7 +1,7 @@
 package com.sasucare.config;
 
 import com.sasucare.security.CustomAuthenticationSuccessHandler;
-import com.sasucare.security.JwtRequestFilter;
+// JWT imports removed
 import com.sasucare.service.CustomUserDetailsService;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -17,7 +17,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
-import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
+// Removed unused imports
 
 @Configuration
 @EnableWebSecurity
@@ -25,14 +25,11 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 public class SecurityConfig {
 
     private final UserDetailsService userDetailsService;
-    private final JwtRequestFilter jwtRequestFilter;
     private final CustomAuthenticationSuccessHandler authSuccessHandler;
     
     public SecurityConfig(CustomUserDetailsService userDetailsService, 
-                         JwtRequestFilter jwtRequestFilter,
                          CustomAuthenticationSuccessHandler authSuccessHandler) {
         this.userDetailsService = userDetailsService;
-        this.jwtRequestFilter = jwtRequestFilter;
         this.authSuccessHandler = authSuccessHandler;
     }
 
@@ -96,8 +93,6 @@ public class SecurityConfig {
             .exceptionHandling(exception -> exception
                 .accessDeniedPage("/access-denied")
             )
-            // Add JWT filter before UsernamePasswordAuthenticationFilter
-            .addFilterBefore(jwtRequestFilter, UsernamePasswordAuthenticationFilter.class)
             // Only APIs use stateless sessions, web frontend uses standard sessions
             .sessionManagement(session -> session
                 .sessionCreationPolicy(SessionCreationPolicy.IF_REQUIRED)
