@@ -49,7 +49,7 @@ public class SecurityConfig {
                 .requestMatchers("/api/auth/**").permitAll()
                 
                 // customer and seller account resources
-                .requestMatchers("/account/**").hasAnyRole("CUSTOMER", "SELLER")
+                .requestMatchers("/account/**").hasAnyRole("CUSTOMER", "SELLER","ADMIN")
                 .requestMatchers("/checkout/**", "/cart/**").hasAnyRole("CUSTOMER", "SELLER")
                 
                 // seller-specific resources
@@ -65,10 +65,7 @@ public class SecurityConfig {
                 .requestMatchers(HttpMethod.POST, "/api/products/**").hasAnyRole("ADMIN", "SELLER")
                 .requestMatchers(HttpMethod.PUT, "/api/products/**").hasAnyRole("ADMIN", "SELLER")
                 .requestMatchers(HttpMethod.DELETE, "/api/products/**").hasAnyRole("ADMIN", "SELLER")
-                
-                // Moderator-specific resources
-                .requestMatchers("/moderator/**").hasRole("MODERATOR")
-                .requestMatchers("/api/reviews/moderate/**").hasAnyRole("ADMIN", "MODERATOR")
+
                 
                 // Any other request requires authentication
                 .anyRequest().authenticated()

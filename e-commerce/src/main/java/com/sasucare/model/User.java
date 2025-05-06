@@ -52,7 +52,8 @@ public class User {
     
     @Column(name = "updated_at", nullable = false)
     private LocalDateTime updatedAt;
-    
+    @Column(name = "img", nullable = true)
+    private String img;
     @ManyToMany(fetch = FetchType.EAGER)
     @JoinTable(
         name = "user_roles",

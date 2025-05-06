@@ -94,6 +94,7 @@ public class AccountController {
             if (updatedUser.getShopName() != null) {
                 user.setShopName(updatedUser.getShopName());
             }
+            user.setImg(updatedUser.getImg());
             userService.updateUser(user);
             
             redirectAttributes.addFlashAttribute("success", "Profile updated successfully!");
@@ -160,17 +161,12 @@ public class AccountController {
      */
     @GetMapping("/orders")
     public String viewOrders(Model model) {
-        // Get current logged in user
         Authentication auth = SecurityContextHolder.getContext().getAuthentication();
         User user = userService.findByEmail(auth.getName());
         
         if (user == null) {
             return "redirect:/login";
         }
-        
-        // TODO: Load orders for this user
-        // List<Order> orders = orderService.getOrdersByCustomer(user);
-        // model.addAttribute("orders", orders);
         
         return "account/orders";
     }

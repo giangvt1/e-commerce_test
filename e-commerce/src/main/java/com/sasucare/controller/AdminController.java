@@ -2,6 +2,7 @@ package com.sasucare.controller;
 
 import com.sasucare.model.Category;
 import com.sasucare.model.Product;
+import com.sasucare.model.SaleCode;
 import com.sasucare.model.User;
 import com.sasucare.service.CategoryService;
 import com.sasucare.service.ProductService;
@@ -18,6 +19,7 @@ import org.springframework.ui.Model;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -236,7 +238,7 @@ public class AdminController {
             logger.error("Admin not found for email: {}", auth.getName());
             return "redirect:/login";
         }
-        
+
         // Add admin to model
         model.addAttribute("admin", admin);
         
@@ -293,4 +295,18 @@ public class AdminController {
         
         return "redirect:/admin/categories";
     }
+     public SaleCode generateSaleCode() {
+        SaleCode saleCode = new SaleCode();
+        saleCode.setCode(String.format("%06d", (int)(Math.random() * 999999)));
+        return saleCode;
+     }
+     @GetMapping("/sale-codes")
+     public ArrayList<SaleCode> createSaleCode(int numberOfCodes) {
+        ArrayList<SaleCode> saleCodes = new ArrayList<>();
+        for (int i = 0; i < numberOfCodes; i++) {
+            SaleCode saleCode = generateSaleCode();
+            saleCodes.add(saleCode);
+        }
+        return saleCodes;
+     }
 }

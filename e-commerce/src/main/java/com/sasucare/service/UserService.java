@@ -34,8 +34,6 @@ public class UserService {
      * @return List of users with the specified role
      */
     public List<User> findByRoleName(String roleName) {
-        // This would ideally be a custom query in the repository
-        // For now, we'll fetch all users and filter by role
         List<User> allUsers = userRepository.findAll();
         return allUsers.stream()
                 .filter(user -> user.getRoles().stream()
@@ -93,7 +91,6 @@ public class UserService {
             user.setCreatedAt(LocalDateTime.now());
         }
         user.setUpdatedAt(LocalDateTime.now());
-        
         // Generate verification token
         String token = generateVerificationToken();
         user.setVerificationToken(token);
