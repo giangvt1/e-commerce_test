@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html xmlns:th="http://www.thymeleaf.org" xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<html xmlns:th="http://www.thymeleaf.org">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -151,22 +151,21 @@
                             <tr th:if="${users.empty}">
                                 <td colspan="6" class="text-center">No users found</td>
                             </tr>
-                            <tr th:each="user : ${users}" th:if="${!users.empty}">
+                            <tr th:each="user : ${users}">
                                 <td>
                                     <div class="d-flex align-items-center">
-                                        <img th:src="${user.profileImageUrl != null ? user.profileImageUrl : 'https://via.placeholder.com/40'}" 
+                                        <img th:src="${user.profileImageUrl ?: 'https://via.placeholder.com/40'}"
                                              alt="User Avatar" class="user-avatar me-2">
                                         <div>
                                             <div th:text="${user.firstName + ' ' + user.lastName}">User Name</div>
-                                            <small class="text-muted" th:text="${user.phoneNumber != null ? user.phoneNumber : 'No phone'}">Phone</small>
+                                            <small class="text-muted" th:text="${user.phoneNumber ?: 'No phone'}">Phone</small>
                                         </div>
                                     </div>
                                 </td>
                                 <td th:text="${user.email}">user@example.com</td>
                                 <td>
-                                    <span th:each="role : ${user.roles}" th:text="${role.name}" 
-                                          th:class="${'badge ' + (role.name == 'ROLE_ADMIN' ? 'bg-danger' : 
-                                                        (role.name == 'ROLE_SELLER' ? 'bg-primary' : 'bg-secondary')) + ' role-badge'}">ROLE</span>
+                                    <span th:each="role : ${user.roles}" th:text="${role.name}"
+                                          th:class="${'badge ' + (role.name == 'ROLE_ADMIN' ? 'bg-danger' : (role.name == 'ROLE_SELLER' ? 'bg-primary' : 'bg-secondary')) + ' role-badge'}">ROLE</span>
                                 </td>
                                 <td>
                                     <span th:if="${user.verified}" class="badge bg-success">Verified</span>
@@ -175,7 +174,7 @@
                                 <td th:text="${#temporals.format(user.createdAt, 'yyyy-MM-dd')}">2023-01-01</td>
                                 <td>
                                     <div class="btn-group">
-                                        <button class="btn btn-sm btn-outline-primary edit-user-btn"
+                                        <button class="btn btn-sm btn-outline-primary view-user-btn"
                                                 th:data-user-id="${user.id}"
                                                 data-bs-toggle="modal" data-bs-target="#viewUserModal">
                                             <i class="fas fa-eye"></i>
@@ -208,7 +207,6 @@
             </div>
             <div class="modal-body">
                 <div id="userDetails">
-                    <!-- User details will be loaded here via AJAX -->
                     <div class="text-center">
                         <div class="spinner-border text-primary" role="status">
                             <span class="visually-hidden">Loading...</span>
@@ -234,28 +232,20 @@
             </div>
             <div class="modal-body">
                 <form id="editRolesForm" th:action="@{/admin/users/roles}" method="post">
+                    <input type="hidden" th:name="${_csrf.parameterName}" th:value="${_csrf.token}" />
                     <input type="hidden" id="editRolesUserId" name="userId">
                     <p>Manage roles for <span id="editRolesUserName" class="fw-bold"></span></p>
-                    
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" value="ROLE_ADMIN" id="roleAdmin" name="roles">
-                        <label class="form-check-label" for="roleAdmin">
-                            ADMIN - Full system access
-                        </label>
+                        <label class="form-check-label" for="roleAdmin">ADMIN - Full system access</label>
                     </div>
-                    
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" value="ROLE_SELLER" id="roleSeller" name="roles">
-                        <label class="form-check-label" for="roleSeller">
-                            SELLER - Can sell products
-                        </label>
+                        <label class="form-check-label" for="roleSeller">SELLER - Can sell products</label>
                     </div>
-                    
                     <div class="form-check mb-2">
                         <input class="form-check-input" type="checkbox" value="ROLE_CUSTOMER" id="roleCustomer" name="roles">
-                        <label class="form-check-label" for="roleCustomer">
-                            CUSTOMER - Can purchase products
-                        </label>
+                        <label class="form-check-label" for="roleCustomer">CUSTOMER - Can purchase products</label>
                     </div>
                 </form>
             </div>
@@ -286,7 +276,6 @@
                             <option value="ROLE_CUSTOMER">Customer</option>
                         </select>
                     </div>
-                    
                     <div class="mb-3">
                         <label for="verificationFilter" class="form-label">Verification Status</label>
                         <select class="form-select" id="verificationFilter" name="verified">
@@ -295,7 +284,6 @@
                             <option value="false">Unverified Users</option>
                         </select>
                     </div>
-                    
                     <div class="mb-3">
                         <label for="searchFilter" class="form-label">Search</label>
                         <input type="text" class="form-control" id="searchFilter" name="search" placeholder="Search by name or email...">
@@ -321,31 +309,16 @@
         button.addEventListener('click', function() {
             const userId = this.getAttribute('data-user-id');
             const userName = this.getAttribute('data-user-name');
-            
             document.getElementById('editRolesUserId').value = userId;
             document.getElementById('editRolesUserName').textContent = userName;
-            
-            // Here you would typically load the user's current roles via AJAX
-            // and check the appropriate checkboxes
-            
-            // For example:
-            // fetch(`/admin/users/${userId}/roles`)
-            //     .then(response => response.json())
-            //     .then(data => {
-            //         document.getElementById('roleAdmin').checked = data.roles.includes('ROLE_ADMIN');
-            //         document.getElementById('roleSeller').checked = data.roles.includes('ROLE_SELLER');
-            //         document.getElementById('roleCustomer').checked = data.roles.includes('ROLE_CUSTOMER');
-            //     });
+            // AJAX to load current roles…
         });
     });
-    
+
     // View user details
-    document.querySelectorAll('.edit-user-btn').forEach(button => {
+    document.querySelectorAll('.view-user-btn').forEach(button => {
         button.addEventListener('click', function() {
             const userId = this.getAttribute('data-user-id');
-            
-            // Here you would typically load user details via AJAX
-            // For now, we'll just show a placeholder
             document.getElementById('userDetails').innerHTML = `
                 <div class="text-center mb-4">
                     <p>Detailed user information would be loaded here.</p>
@@ -355,10 +328,13 @@
         });
     });
 
-    // Toggle sidebar on mobile
-    document.getElementById('sidebarToggle')?.addEventListener('click', function() {
-        document.querySelector('.seller-sidebar').classList.toggle('d-none');
-    });
+    // Toggle sidebar on mobile without optional chaining
+    const toggle = document.getElementById('sidebarToggle');
+    if (toggle) {
+        toggle.addEventListener('click', function() {
+            document.querySelector('.seller-sidebar').classList.toggle('d-none');
+        });
+    }
 </script>
 </body>
 </html>

@@ -29,6 +29,15 @@ public class UserService {
     }
     
     /**
+     * Find a user by their ID
+     * @param id The user ID to search for
+     * @return The user if found, null otherwise
+     */
+    public User findById(Long id) {
+        return userRepository.findById(id).orElse(null);
+    }
+    
+    /**
      * Find all users with a specific role
      * @param roleName The role name to search for (e.g., ROLE_ADMIN, ROLE_SELLER)
      * @return List of users with the specified role
@@ -39,6 +48,14 @@ public class UserService {
                 .filter(user -> user.getRoles().stream()
                         .anyMatch(role -> role.getName().equals(roleName)))
                 .collect(Collectors.toList());
+    }
+    
+    /**
+     * Find all users with seller role
+     * @return List of users with seller role
+     */
+    public List<User> findSellerUsers() {
+        return findByRoleName("ROLE_SELLER");
     }
     
     /**

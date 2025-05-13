@@ -59,6 +59,64 @@
             background-color: #f5f5f5;
             color: #007bff;
         }
+        
+        /* Enhanced Cart Icon Styles */
+        .cart-icon {
+            position: relative;
+            display: inline-block;
+            padding: 10px;
+            color: #333;
+            text-decoration: none;
+            transition: all 0.3s ease;
+        }
+        
+        .cart-icon:hover {
+            color: #3366ff;
+        }
+        
+        .cart-icon i {
+            font-size: 1.2rem;
+        }
+        
+        .cart-count {
+            position: absolute;
+            top: 0;
+            right: 0;
+            background-color: #3366ff;
+            color: white;
+            border-radius: 50%;
+            min-width: 18px;
+            height: 18px;
+            font-size: 11px;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 0 4px;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.2);
+        }
+        
+        /* Cart notification animation */
+        @keyframes cartNotification {
+            0% { transform: scale(0); opacity: 0; }
+            50% { transform: scale(1.2); opacity: 1; }
+            100% { transform: scale(1); opacity: 1; }
+        }
+        
+        .cart-notification {
+            position: fixed;
+            top: 70px;
+            right: 20px;
+            background-color: #3366ff;
+            color: white;
+            font-weight: 600;
+            padding: 8px 12px;
+            border-radius: 6px;
+            opacity: 0;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+            z-index: 1050;
+            animation: cartNotification 0.5s forwards;
+        }
     </style>
 </head>
 <body>
@@ -109,11 +167,12 @@
                         </div>
                     </div>
                     
-                    <a th:href="@{/cart}" class="cart-icon">
+                    <a th:href="@{/cart}" class="cart-icon" id="cartIcon">
                         <i class="fas fa-shopping-cart"></i>
                         <span class="cart-count" th:if="${session.cart != null and !session.cart.isEmpty()}" 
-                              th:text="${session.cart.itemCount}">0</span>
+                              th:text="${session.cart.itemCount}" id="cartCounter">0</span>
                     </a>
+                    <div id="cartNotification" class="cart-notification" style="display:none;">+1 Item Added</div>
                 </div>
             </div>
         </div>
@@ -141,6 +200,44 @@
                         }
                     });
                 }
+                
+                // Initialize cart notification system
+                window.showCartNotification = function(message) {
+                    const notification = document.getElementById('cartNotification');
+                    if (notification) {
+                        // Update notification message if provided
+                        if (message) {
+                            notification.textContent = message;
+                        }
+                        
+                        // Show notification
+                        notification.style.display = 'block';
+                        notification.style.animation = 'none';
+                        void notification.offsetWidth; // Trigger reflow
+                        notification.style.animation = 'cartNotification 0.5s forwards';
+                        
+                        // Hide after 2 seconds
+                        setTimeout(function() {
+                            notification.style.opacity = '0';
+                            setTimeout(function() {
+                                notification.style.display = 'none';
+                            }, 300);
+                        }, 2000);
+                    }
+                };
+                
+                // Function to update cart counter
+                window.updateCartCounter = function(count) {
+                    const counter = document.getElementById('cartCounter');
+                    if (counter) {
+                        counter.textContent = count;
+                        if (count > 0) {
+                            counter.style.display = 'flex';
+                        } else {
+                            counter.style.display = 'none';
+                        }
+                    }
+                };
             });
         </script>
     </header>

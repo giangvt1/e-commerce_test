@@ -58,5 +58,4 @@ public class CategoryService {
         return categoryRepository.save(category);
     }
     
-    // All sample data code has been removed - now using database directly
 }

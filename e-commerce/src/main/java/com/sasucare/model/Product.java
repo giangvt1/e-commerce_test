@@ -35,7 +35,7 @@ public class Product {
     private BigDecimal price;
     
     @Column(name = "stock_quantity", nullable = false)
-    private int stockQuantity;
+    private Integer stockQuantity;
     
     @Column(name = "sku")
     private String sku;

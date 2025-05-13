@@ -25,10 +25,10 @@ public class CustomAuthenticationSuccessHandler implements AuthenticationSuccess
         Set<String> roles = AuthorityUtils.authorityListToSet(authentication.getAuthorities());
         
         // Redirect based on role
-        if (roles.contains("ROLE_SELLER")) {
+        if (roles.contains("SELLER")) {
             // Seller goes to seller dashboard
             response.sendRedirect("/seller/dashboard");
-        } else if (roles.contains("ROLE_ADMIN")) {
+        } else if (roles.contains("ADMIN")) {
             // Admin goes to admin dashboard
             response.sendRedirect("/admin/dashboard");
         } else {

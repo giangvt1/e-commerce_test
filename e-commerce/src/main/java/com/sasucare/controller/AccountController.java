@@ -1,6 +1,8 @@
 package com.sasucare.controller;
 
+import com.sasucare.model.Booking;
 import com.sasucare.model.User;
+import com.sasucare.service.BookingService;
 import com.sasucare.service.UserService;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -15,6 +17,7 @@ import org.springframework.web.multipart.MultipartFile;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import jakarta.validation.Valid;
+import java.util.List;
 
 /**
  * Controller for handling user account management
@@ -26,10 +29,12 @@ public class AccountController {
     private static final Logger logger = LoggerFactory.getLogger(AccountController.class);
     
     private final UserService userService;
+    private final BookingService bookingService;
     
     @Autowired
-    public AccountController(UserService userService) {
+    public AccountController(UserService userService, BookingService bookingService) {
         this.userService = userService;
+        this.bookingService = bookingService;
     }
     /**
      * Display user profile page
@@ -157,7 +162,7 @@ public class AccountController {
     }
     
     /**
-     * Display orders page
+     * Display orders page showing bookings belonging to the logged-in user
      */
     @GetMapping("/orders")
     public String viewOrders(Model model) {
@@ -167,6 +172,10 @@ public class AccountController {
         if (user == null) {
             return "redirect:/login";
         }
+        
+        // Fetch all bookings (orders) belonging to the current user
+        List<Booking> userOrders = bookingService.getCustomerBookings(user);
+        model.addAttribute("orders", userOrders);
         
         return "account/orders";
     }

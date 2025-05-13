@@ -180,8 +180,8 @@
                     <div class="card dashboard-card">
                         <div class="card-body text-center">
                             <i class="fas fa-shopping-cart stat-icon"></i>
-                            <h3 class="stat-value">0</h3>
-                            <p class="stat-label">New Orders</p>
+                            <h3 class="stat-value" th:text="${totalOrders}">0</h3>
+                            <p class="stat-label">Total Orders</p>
                         </div>
                     </div>
                 </div>
@@ -189,17 +189,55 @@
                     <div class="card dashboard-card">
                         <div class="card-body text-center">
                             <i class="fas fa-money-bill-wave stat-icon"></i>
-                            <h3 class="stat-value">₫0</h3>
-                            <p class="stat-label">Revenue (Month)</p>
+                            <h3 class="stat-value" th:text="${#numbers.formatDecimal(totalRevenue, 0, 'COMMA', 0, 'POINT')} + '₫'">₫0</h3>
+                            <p class="stat-label">Revenue (Total)</p>
                         </div>
                     </div>
                 </div>
                 <div class="col-md-3">
                     <div class="card dashboard-card">
                         <div class="card-body text-center">
-                            <i class="fas fa-star stat-icon"></i>
-                            <h3 class="stat-value">0</h3>
-                            <p class="stat-label">Reviews</p>
+                            <i class="fas fa-calendar-alt stat-icon"></i>
+                            <h3 class="stat-value" th:text="${#numbers.formatDecimal(monthlyRevenue, 0, 'COMMA', 0, 'POINT')} + '₫'">₫0</h3>
+                            <p class="stat-label">Revenue (Month)</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <div class="row mb-4">
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-box stat-icon"></i>
+                            <h3 class="stat-value" th:text="${totalProducts}">0</h3>
+                            <p class="stat-label">Total Products</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-check-circle stat-icon"></i>
+                            <h3 class="stat-value" th:text="${confirmedOrders}">0</h3>
+                            <p class="stat-label">Confirmed Orders</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-times-circle stat-icon"></i>
+                            <h3 class="stat-value" th:text="${cancelledOrders}">0</h3>
+                            <p class="stat-label">Cancelled Orders</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-3">
+                    <div class="card dashboard-card">
+                        <div class="card-body text-center">
+                            <i class="fas fa-flag-checkered stat-icon"></i>
+                            <h3 class="stat-value" th:text="${completedOrders}">0</h3>
+                            <p class="stat-label">Completed Orders</p>
                         </div>
                     </div>
                 </div>
@@ -261,7 +299,7 @@
                         <div class="card-body">
                             <div class="d-flex justify-content-between align-items-center mb-3">
                                 <h5 class="section-heading mb-0">Recent Orders</h5>
-                                <a th:href="@{/account/orders}" class="btn btn-sm btn-primary">View All Orders</a>
+                                <a th:href="@{/admin/orders}" class="btn btn-sm btn-primary">View All Orders</a>
                             </div>
 
                             <div class="table-responsive">
@@ -270,16 +308,36 @@
                                     <tr>
                                         <th>Order ID</th>
                                         <th>Customer</th>
+                                        <th>Seller</th>
                                         <th>Date</th>
                                         <th>Amount</th>
                                         <th>Status</th>
+                                        <th>Actions</th>
                                     </tr>
                                     </thead>
                                     <tbody>
-                                    <tr>
-                                        <td colspan="5" class="text-center">No recent orders found</td>
+                                    <tr th:if="${recentOrders.empty}">
+                                        <td colspan="7" class="text-center">No recent orders found</td>
                                     </tr>
-                                    <!-- Orders will be populated here -->
+                                    <tr th:each="order : ${recentOrders}">
+                                        <td th:text="${order.bookingNumber}">BK123456</td>
+                                        <td th:text="${order.customer.firstName + ' ' + order.customer.lastName}">John Doe</td>
+                                        <td th:text="${order.seller.firstName + ' ' + order.seller.lastName}">Seller Name</td>
+                                        <td th:text="${#temporals.format(order.createdAt, 'dd/MM/yyyy')}">05/01/2023</td>
+                                        <td th:text="${#numbers.formatDecimal(order.totalAmount, 0, 'COMMA', 0, 'POINT')} + '₫'">₫250,000</td>
+                                        <td>
+                                            <span th:if="${order.bookingStatus == 'PENDING'}" class="badge bg-warning text-dark">Pending</span>
+                                            <span th:if="${order.bookingStatus == 'CONFIRMED'}" class="badge bg-success text-white">Confirmed</span>
+                                            <span th:if="${order.bookingStatus == 'REJECTED'}" class="badge bg-danger text-white">Rejected</span>
+                                            <span th:if="${order.bookingStatus == 'COMPLETED'}" class="badge bg-info text-white">Completed</span>
+                                            <span th:if="${order.bookingStatus == 'CANCELLED'}" class="badge bg-secondary text-white">Cancelled</span>
+                                        </td>
+                                        <td>
+                                            <a th:href="@{/admin/orders/{id}(id=${order.id})}" class="btn btn-sm btn-primary">
+                                                <i class="fas fa-eye"></i> View
+                                            </a>
+                                        </td>
+                                    </tr>
                                     </tbody>
                                 </table>
                             </div>

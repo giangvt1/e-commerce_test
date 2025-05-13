@@ -1,9 +1,11 @@
 package com.sasucare.controller;
 
+import com.sasucare.model.Booking;
 import com.sasucare.model.Category;
 import com.sasucare.model.Product;
 import com.sasucare.model.SaleCode;
 import com.sasucare.model.User;
+import com.sasucare.service.BookingService;
 import com.sasucare.service.CategoryService;
 import com.sasucare.service.ProductService;
 import com.sasucare.service.UserService;
@@ -35,12 +37,15 @@ public class AdminController {
     private final ProductService productService;
     private final UserService userService;
     private final CategoryService categoryService;
+    private final BookingService bookingService;
     
     @Autowired
-    public AdminController(ProductService productService, UserService userService, CategoryService categoryService) {
+    public AdminController(ProductService productService, UserService userService, 
+                         CategoryService categoryService, BookingService bookingService) {
         this.productService = productService;
         this.userService = userService;
         this.categoryService = categoryService;
+        this.bookingService = bookingService;
     }
     
     /**
@@ -82,12 +87,40 @@ public class AdminController {
         List<Category> categories = categoryService.getAllCategories();
         model.addAttribute("categories", categories);
         
+        // Get all bookings (orders)
+        List<Booking> allBookings = bookingService.getAllBookings();
+        model.addAttribute("recentOrders", allBookings);
+        
         // Add statistics
         model.addAttribute("totalProducts", allProducts.size());
         model.addAttribute("totalSellers", sellers.size());
         model.addAttribute("totalCategories", categories.size());
+        model.addAttribute("totalOrders", allBookings.size());
         
-        // Additional metrics could be added here
+        // Count orders by status
+        model.addAttribute("pendingOrders", countOrdersByStatus(allBookings, "PENDING"));
+        model.addAttribute("confirmedOrders", countOrdersByStatus(allBookings, "CONFIRMED"));
+        model.addAttribute("completedOrders", countOrdersByStatus(allBookings, "COMPLETED"));
+        model.addAttribute("cancelledOrders", countOrdersByStatus(allBookings, "CANCELLED"));
+        
+        // Calculate revenue data - only from COMPLETED orders
+        double totalRevenue = allBookings.stream()
+                .filter(booking -> booking.getTotalAmount() != null)
+                .filter(booking -> "COMPLETED".equals(booking.getBookingStatus()))
+                .mapToDouble(booking -> booking.getTotalAmount().doubleValue())
+                .sum();
+        model.addAttribute("totalRevenue", totalRevenue);
+        
+        // Calculate monthly revenue (completed bookings from current month)
+        double monthlyRevenue = allBookings.stream()
+                .filter(booking -> booking.getCreatedAt() != null && 
+                        booking.getCreatedAt().getMonthValue() == java.time.LocalDate.now().getMonthValue() && 
+                        booking.getCreatedAt().getYear() == java.time.LocalDate.now().getYear())
+                .filter(booking -> booking.getTotalAmount() != null)
+                .filter(booking -> "COMPLETED".equals(booking.getBookingStatus()))
+                .mapToDouble(booking -> booking.getTotalAmount().doubleValue())
+                .sum();
+        model.addAttribute("monthlyRevenue", monthlyRevenue);
         
         return "admin/dashboard";
     }
@@ -308,5 +341,14 @@ public class AdminController {
             saleCodes.add(saleCode);
         }
         return saleCodes;
+     }
+     
+     /**
+      * Helper method to count orders by status
+      */
+     private int countOrdersByStatus(List<Booking> orders, String status) {
+         return (int) orders.stream()
+             .filter(order -> order.getBookingStatus().equals(status))
+             .count();
      }
 }

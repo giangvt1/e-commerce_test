@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:layout="http://www.ultraq.net.nz/thymeleaf/layout"
+      layout:decorate="~{layouts/seller}">
+<head>
+    <title>Manage Bookings</title>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+<div layout:fragment="content">
+    <div class="container-fluid">
+        <div class="d-flex justify-content-between align-items-center mb-4">
+            <h2 class="h3 mb-0 text-gray-800">Manage Bookings</h2>
+        </div>
+        
+        <div th:if="${param.error}" class="alert alert-danger" role="alert">
+            <span th:text="${param.error}">Error message</span>
+        </div>
+        
+        <div th:if="${successMessage}" class="alert alert-success" role="alert">
+            <span th:text="${successMessage}">Success message</span>
+        </div>
+        
+        <div th:if="${errorMessage}" class="alert alert-danger" role="alert">
+            <span th:text="${errorMessage}">Error message</span>
+        </div>
+        
+        <!-- Booking Status Cards -->
+        <div class="row mb-4">
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-warning shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-warning text-uppercase mb-1">Pending Bookings</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${pendingCount}">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-clock fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-success shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-success text-uppercase mb-1">Confirmed Bookings</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${bookings.stream().filter(b -> 'CONFIRMED'.equals(b.bookingStatus)).count()}">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-check fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-danger shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-danger text-uppercase mb-1">Rejected Bookings</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${bookings.stream().filter(b -> 'REJECTED'.equals(b.bookingStatus)).count()}">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-times fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="col-xl-3 col-md-6 mb-4">
+                <div class="card border-left-info shadow h-100 py-2">
+                    <div class="card-body">
+                        <div class="row no-gutters align-items-center">
+                            <div class="col mr-2">
+                                <div class="text-xs font-weight-bold text-info text-uppercase mb-1">Completed Bookings</div>
+                                <div class="h5 mb-0 font-weight-bold text-gray-800" th:text="${bookings.stream().filter(b -> 'COMPLETED'.equals(b.bookingStatus)).count()}">0</div>
+                            </div>
+                            <div class="col-auto">
+                                <i class="fas fa-check-double fa-2x text-gray-300"></i>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Booking Filter Tabs -->
+        <div class="card shadow mb-4">
+            <div class="card-header py-3">
+                <ul class="nav nav-tabs card-header-tabs">
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${currentStatus == 'ALL' ? 'active' : ''}" th:href="@{/seller/bookings}">All</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${currentStatus == 'PENDING' ? 'active' : ''}" th:href="@{/seller/bookings(status='PENDING')}">
+                            Pending <span class="badge bg-warning text-dark" th:text="${pendingCount}">0</span>
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${currentStatus == 'CONFIRMED' ? 'active' : ''}" th:href="@{/seller/bookings(status='CONFIRMED')}">Confirmed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${currentStatus == 'COMPLETED' ? 'active' : ''}" th:href="@{/seller/bookings(status='COMPLETED')}">Completed</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${currentStatus == 'REJECTED' ? 'active' : ''}" th:href="@{/seller/bookings(status='REJECTED')}">Rejected</a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" th:classappend="${currentStatus == 'CANCELLED' ? 'active' : ''}" th:href="@{/seller/bookings(status='CANCELLED')}">Cancelled</a>
+                    </li>
+                </ul>
+            </div>
+            <div class="card-body">
+                <div class="table-responsive">
+                    <table class="table table-bordered" id="bookingsTable" width="100%" cellspacing="0">
+                        <thead>
+                            <tr>
+                                <th>Booking #</th>
+                                <th>Date</th>
+                                <th>Customer</th>
+                                <th>Items</th>
+                                <th>Total</th>
+                                <th>Status</th>
+                                <th>Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr th:if="${bookings.empty}">
+                                <td colspan="7" class="text-center">No bookings found</td>
+                            </tr>
+                            <tr th:each="booking : ${bookings}">
+                                <td>
+                                    <a th:href="@{/seller/bookings/{id}(id=${booking.id})}" class="text-primary">
+                                        <span th:text="${booking.bookingNumber}">BK123456</span>
+                                    </a>
+                                </td>
+                                <td th:text="${#temporals.format(booking.createdAt, 'MMM dd, yyyy')}">Jan 01, 2023</td>
+                                <td th:text="${booking.customer.firstName + ' ' + booking.customer.lastName}">Customer Name</td>
+                                <td th:text="${booking.bookingItems.size()}">3</td>
+                                <td th:text="${'$' + booking.totalAmount}">$80.00</td>
+                                <td>
+                                    <span th:if="${booking.bookingStatus == 'PENDING'}" class="badge bg-warning text-dark">Pending</span>
+                                    <span th:if="${booking.bookingStatus == 'CONFIRMED'}" class="badge bg-success">Confirmed</span>
+                                    <span th:if="${booking.bookingStatus == 'REJECTED'}" class="badge bg-danger">Rejected</span>
+                                    <span th:if="${booking.bookingStatus == 'COMPLETED'}" class="badge bg-info">Completed</span>
+                                    <span th:if="${booking.bookingStatus == 'CANCELLED'}" class="badge bg-secondary">Cancelled</span>
+                                </td>
+                                <td class="text-center">
+                                    <a th:href="@{/seller/bookings/{id}(id=${booking.id})}" class="btn btn-sm btn-outline-primary">
+                                        <i class="fas fa-eye"></i> View
+                                    </a>
+                                    
+                                    <div th:if="${booking.bookingStatus == 'PENDING'}" class="btn-group" role="group">
+                                        <a href="#" class="btn btn-sm btn-success" data-bs-toggle="modal" th:data-bs-target="'#confirmModal' + ${booking.id}">
+                                            <i class="fas fa-check"></i> Confirm
+                                        </a>
+                                        <a href="#" class="btn btn-sm btn-danger" data-bs-toggle="modal" th:data-bs-target="'#rejectModal' + ${booking.id}">
+                                            <i class="fas fa-times"></i> Reject
+                                        </a>
+                                    </div>
+                                    
+                                    <a th:if="${booking.bookingStatus == 'CONFIRMED'}" href="#" class="btn btn-sm btn-info" 
+                                       data-bs-toggle="modal" th:data-bs-target="'#completeModal' + ${booking.id}">
+                                        <i class="fas fa-check-double"></i> Complete
+                                    </a>
+                                    
+                                    <!-- Confirm Modal -->
+                                    <div class="modal fade" th:id="'confirmModal' + ${booking.id}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Confirm Booking</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to confirm booking <strong th:text="${booking.bookingNumber}">BK123456</strong>?</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <form th:action="@{/seller/bookings/{id}/confirm(id=${booking.id})}" method="post">
+                                                        <button type="submit" class="btn btn-success">Confirm Booking</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Reject Modal -->
+                                    <div class="modal fade" th:id="'rejectModal' + ${booking.id}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Reject Booking</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <form th:action="@{/seller/bookings/{id}/reject(id=${booking.id})}" method="post">
+                                                    <div class="modal-body">
+                                                        <p>Please provide a reason for rejecting booking <strong th:text="${booking.bookingNumber}">BK123456</strong>:</p>
+                                                        <div class="mb-3">
+                                                            <textarea class="form-control" id="rejectionReason" name="rejectionReason" rows="4" required></textarea>
+                                                        </div>
+                                                    </div>
+                                                    <div class="modal-footer">
+                                                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                        <button type="submit" class="btn btn-danger">Reject Booking</button>
+                                                    </div>
+                                                </form>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    
+                                    <!-- Complete Modal -->
+                                    <div class="modal fade" th:id="'completeModal' + ${booking.id}" tabindex="-1" aria-hidden="true">
+                                        <div class="modal-dialog">
+                                            <div class="modal-content">
+                                                <div class="modal-header">
+                                                    <h5 class="modal-title">Complete Booking</h5>
+                                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                                </div>
+                                                <div class="modal-body">
+                                                    <p>Are you sure you want to mark booking <strong th:text="${booking.bookingNumber}">BK123456</strong> as completed?</p>
+                                                    <p>This action will indicate that the booking has been fulfilled and all items have been delivered.</p>
+                                                </div>
+                                                <div class="modal-footer">
+                                                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                                    <form th:action="@{/seller/bookings/{id}/complete(id=${booking.id})}" method="post">
+                                                        <button type="submit" class="btn btn-info">Complete Booking</button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+</html>

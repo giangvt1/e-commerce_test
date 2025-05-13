@@ -14,36 +14,81 @@
         }
         
         .hero-banner {
-            background-color: #f8f9fa;
-            padding: 60px 0;
-            border-bottom: 1px solid #eaeaea;
+            position: relative;
+            height: 500px;
+            overflow: hidden;
+            margin-bottom: 40px;
+        }
+        
+        .banner-image-container {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 1;
+        }
+        
+        .banner-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            object-position: center;
+        }
+        
+        .banner-overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.4);
+            z-index: 2;
+        }
+        
+        .banner-content {
+            position: relative;
+            z-index: 3;
+            color: white;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
         }
         
         .banner-title {
-            font-size: 2.5rem;
+            font-size: 3rem;
             font-weight: 700;
             margin-bottom: 1.5rem;
-            color: #333;
+            color: white;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.5);
         }
         
         .banner-text {
-            font-size: 1.1rem;
-            color: #666;
+            font-size: 1.2rem;
+            color: white;
             margin-bottom: 2rem;
             line-height: 1.6;
+            max-width: 600px;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.5);
         }
         
         .banner-button {
-            padding: 0.6rem 1.8rem;
+            padding: 0.8rem 2rem;
             font-weight: 600;
             text-transform: uppercase;
             letter-spacing: 0.5px;
             border-radius: 4px;
+            background: #3366ff;
+            border: none;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.2);
+            transition: all 0.3s;
         }
         
-        .banner-image {
-            border-radius: 8px;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.1);
+        .banner-button:hover {
+            background: #2351d8;
+            transform: translateY(-2px);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.3);
         }
         
         .section-title {
@@ -269,16 +314,22 @@
     </div>
     
     <!-- Banner Section -->
-    <div class="hero-banner mb-5">
-        <div class="container">
-            <div class="row align-items-center">
-                <div class="col-md-6">
+    <div class="hero-banner">
+        <!-- Banner Background Image -->
+        <div class="banner-image-container">
+            <img src="/uploads/banner.jpg" alt="SASUCare Banner" class="banner-image">
+        </div>
+        
+        <!-- Overlay -->
+        <div class="banner-overlay"></div>
+        
+        <!-- Banner Content -->
+        <div class="container banner-content">
+            <div class="row">
+                <div class="col-md-8 col-lg-6">
                     <h1 class="banner-title">Welcome to CYO Shop</h1>
-                    <p class="banner-text">Discover amazing products from our curated collection. Quality items for every need.</p>
+                    <p class="banner-text">Discover a wide range of products for your every need. High-quality items at affordable prices.</p>
                     <a href="#products" class="btn btn-primary banner-button">Shop Now</a>
-                </div>
-                <div class="col-md-6 text-center">
-                    <img src="/uploads/f95b7628-9b04-4d89-9dbe-e20a7386ebd1.jpg" alt="SASUCare Banner" class="img-fluid banner-image">
                 </div>
             </div>
         </div>

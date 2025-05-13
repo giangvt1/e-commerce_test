@@ -79,8 +79,6 @@ public class ProductService {
 
     public List<Product> findBySellerEmail(String email) {
         try {
-            // For production this would be:
-            // return productRepository.findBySeller_Email(email);
             return productRepository.findBySeller_Email(email);
         } catch (Exception e) {
             logger.warn("Error finding products by seller email, using sample data fallback", e);

@@ -1,8 +1,10 @@
 package com.sasucare.controller;
 
+import com.sasucare.model.Booking;
 import com.sasucare.model.Category;
 import com.sasucare.model.Product;
 import com.sasucare.model.User;
+import com.sasucare.service.BookingService;
 import com.sasucare.service.CategoryService;
 import com.sasucare.service.FileStorageService;
 import com.sasucare.service.ProductService;
@@ -39,14 +41,17 @@ public class SellerController {
     private final UserService userService;
     private final CategoryService categoryService;
     private final FileStorageService fileStorageService;
+    private final BookingService bookingService;
 
     @Autowired
     public SellerController(ProductService productService, UserService userService, 
-                          CategoryService categoryService, FileStorageService fileStorageService) {
+                          CategoryService categoryService, FileStorageService fileStorageService,
+                          BookingService bookingService) {
         this.productService = productService;
         this.userService = userService;
         this.categoryService = categoryService;
         this.fileStorageService = fileStorageService;
+        this.bookingService = bookingService;
     }
 
     /**
@@ -55,45 +60,97 @@ public class SellerController {
     @GetMapping("/dashboard")
     @Secured("ROLE_SELLER")
     public String dashboard(Model model) {
-        // Get the current logged-in user
-        Authentication auth = SecurityContextHolder.getContext().getAuthentication();
-        
-        // Debug authentication and roles
-        logger.info("Current authentication: {}", auth);
-        logger.info("User roles: {}", auth.getAuthorities().stream()
-                .map(GrantedAuthority::getAuthority)
-                .collect(Collectors.toList()));
-        
-        User seller = userService.findByEmail(auth.getName());
-        
-        if (seller == null) {
-            logger.error("Seller not found for email: {}", auth.getName());
-            return "redirect:/login";
+        try {
+            // Get the current logged-in user
+            Authentication auth = SecurityContextHolder.getContext().getAuthentication();
+            
+            // Debug authentication and roles
+            logger.info("Current authentication: {}", auth);
+            logger.info("User roles: {}", auth.getAuthorities().stream()
+                    .map(GrantedAuthority::getAuthority)
+                    .collect(Collectors.toList()));
+            
+            User seller = userService.findByEmail(auth.getName());
+            
+            if (seller == null) {
+                logger.error("Seller not found for email: {}", auth.getName());
+                return "redirect:/login";
+            }
+            
+            logger.info("Found seller: {}", seller);
+            logger.info("Seller roles: {}", seller.getRoles());
+            
+            // Add seller data to model
+            model.addAttribute("seller", seller);
+            
+            // Get seller's products with defensive check
+            List<Product> products = productService.findBySellerEmail(seller.getEmail());
+            if (products == null) {
+                products = new ArrayList<>();
+                logger.error("No products found for seller: {}", seller.getEmail());
+            }
+            model.addAttribute("products", products);
+            
+            // Get sales metrics
+            model.addAttribute("totalProducts", products.size());
+            model.addAttribute("activeProducts", products.stream()
+                    .filter(p -> p.getStatus() != null && "ACTIVE".equals(p.getStatus()))
+                    .count());
+            
+            // Calculate total inventory value safely
+            double inventoryValue = products.stream()
+                    .filter(p -> p.getPrice() != null && p.getStockQuantity() != null)
+                    .mapToDouble(p -> p.getPrice().doubleValue() * p.getStockQuantity())
+                    .sum();
+            model.addAttribute("inventoryValue", inventoryValue);
+            
+            // Get recent orders for the seller
+            List<Booking> recentOrders = bookingService.getSellerBookings(seller);
+            if (recentOrders == null) {
+                recentOrders = new ArrayList<>();
+                logger.error("No bookings found for seller: {}", seller.getEmail());
+            }
+            model.addAttribute("recentOrders", recentOrders);
+            
+            // Calculate revenue data - only from COMPLETED orders
+            double totalRevenue = recentOrders.stream()
+                    .filter(booking -> booking.getTotalAmount() != null)
+                    .filter(booking -> booking.getBookingStatus() != null && "COMPLETED".equals(booking.getBookingStatus()))
+                    .mapToDouble(booking -> booking.getTotalAmount().doubleValue())
+                    .sum();
+            model.addAttribute("totalRevenue", totalRevenue);
+            
+            // Calculate monthly revenue (completed bookings from current month)
+            double monthlyRevenue = recentOrders.stream()
+                    .filter(booking -> booking.getCreatedAt() != null && 
+                            booking.getCreatedAt().getMonthValue() == java.time.LocalDate.now().getMonthValue() && 
+                            booking.getCreatedAt().getYear() == java.time.LocalDate.now().getYear())
+                    .filter(booking -> booking.getTotalAmount() != null)
+                    .filter(booking -> booking.getBookingStatus() != null && "COMPLETED".equals(booking.getBookingStatus()))
+                    .mapToDouble(booking -> booking.getTotalAmount().doubleValue())
+                    .sum();
+            model.addAttribute("monthlyRevenue", monthlyRevenue);
+            
+            // Count orders by status with defensive coding
+            try {
+                model.addAttribute("pendingOrders", bookingService.getSellerBookingsByStatus(seller, "PENDING").size());
+                model.addAttribute("confirmedOrders", bookingService.getSellerBookingsByStatus(seller, "CONFIRMED").size());
+                model.addAttribute("completedOrders", bookingService.getSellerBookingsByStatus(seller, "COMPLETED").size());
+                model.addAttribute("cancelledOrders", bookingService.getSellerBookingsByStatus(seller, "CANCELLED").size());
+            } catch (Exception e) {
+                logger.error("Error getting booking counts: {}", e.getMessage());
+                model.addAttribute("pendingOrders", 0);
+                model.addAttribute("confirmedOrders", 0);
+                model.addAttribute("completedOrders", 0);
+                model.addAttribute("cancelledOrders", 0);
+            }
+            
+            return "seller/dashboard";
+        } catch (Exception e) {
+            logger.error("Error in seller dashboard: {}", e.getMessage(), e);
+            model.addAttribute("error", "Failed to load dashboard: " + e.getMessage());
+            return "error";
         }
-        
-        logger.info("Found seller: {}", seller);
-        logger.info("Seller roles: {}", seller.getRoles());
-        
-        // Add seller data to model
-        model.addAttribute("seller", seller);
-        
-        // Get seller's products
-        List<Product> products = productService.findBySellerEmail(seller.getEmail());
-        model.addAttribute("products", products);
-        
-        // Get sales metrics
-        model.addAttribute("totalProducts", products.size());
-        model.addAttribute("activeProducts", products.stream()
-                .filter(p -> "ACTIVE".equals(p.getStatus()))
-                .count());
-        
-        // Calculate total inventory value
-        double inventoryValue = products.stream()
-                .mapToDouble(p -> p.getPrice().doubleValue() * p.getStockQuantity())
-                .sum();
-        model.addAttribute("inventoryValue", inventoryValue);
-        
-        return "seller/dashboard";
     }
     
     /**
@@ -244,12 +301,7 @@ public class SellerController {
             redirectAttributes.addFlashAttribute("errorMessage", "You do not have permission to edit this product");
             return "redirect:/seller/products";
         }
-        
-        model.addAttribute("product", product);
-        model.addAttribute("categories", categoryService.findAll());
-        model.addAttribute("pageTitle", "Edit Product");
-        
-        return "seller/product-edit";
+        return "seller/products-edit";
     }
     
     /**

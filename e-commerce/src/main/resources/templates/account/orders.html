@@ -303,76 +303,49 @@
                         </div>
                         
                         <!-- Empty Orders State -->
-                        <div class="empty-orders">
-                            <i class="fas fa-shopping-bag"></i>
-                            <h3>No Orders Yet</h3>
-                            <p>Looks like you haven't placed any orders yet. Start shopping and your orders will appear here.</p>
-                            <a href="/home" class="shop-now-button">Shop Now</a>
+                        <div th:if="${#lists.isEmpty(orders)}" class="empty-orders text-center py-5">
+                            <div class="mb-3">
+                                <i class="fas fa-shopping-bag fa-5x text-muted"></i>
+                            </div>
+                            <h3 class="text-muted">No Orders Yet</h3>
+                            <p class="text-muted mb-4">Looks like you haven't placed any orders yet. Start shopping and your orders will appear here.</p>
+                            <a href="/shop" class="shop-now-button">Shop Now</a>
                         </div>
                         
-                        <!-- Sample Orders - This will be populated from the database -->
-                        <!-- 
-                        <div class="order-card">
-                            <div class="order-header d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="order-id">Order #ORD123456</div>
-                                    <div class="order-date">Placed on 15 Apr 2023</div>
+                        <!-- Dynamic orders list -->
+                        <div th:unless="${#lists.isEmpty(orders)}">
+                            <div th:each="order : ${orders}" class="order-card mb-4">
+                                <div class="order-header d-flex justify-content-between align-items-center">
+                                    <div>
+                                        <div class="order-id" th:text="'Order #' + ${order.bookingNumber}">Order #BK123456</div>
+                                        <div class="order-date" th:text="'Placed on ' + ${#temporals.format(order.createdAt, 'dd MMM yyyy')}">Placed on 15 Apr 2023</div>
+                                    </div>
+                                    <div th:class="${'order-status ' + 
+                                        (order.bookingStatus == 'PENDING' ? 'status-pending' : 
+                                         order.bookingStatus == 'CONFIRMED' ? 'status-confirmed' : 
+                                         order.bookingStatus == 'COMPLETED' ? 'status-delivered' : 
+                                         order.bookingStatus == 'CANCELLED' ? 'status-cancelled' : 'status-pending')}" 
+                                         th:text="${order.bookingStatus}">Status</div>
                                 </div>
-                                <div class="order-status status-shipped">Shipped</div>
-                            </div>
-                            
-                            <div class="order-body">
-                                <div class="order-product">
-                                    <img src="https://via.placeholder.com/70x70" alt="Product" class="order-product-image">
-                                    <div class="order-product-details">
-                                        <div class="order-product-name">Product Name</div>
-                                        <div class="order-product-price">150,000 đ</div>
-                                        <div class="order-product-quantity">Quantity: 2</div>
+                                
+                                <div class="order-body">
+                                    <div th:each="item : ${order.bookingItems}" class="order-product">
+                                        <img th:if="${item.product.imageUrl}" th:src="${item.product.imageUrl}" alt="Product" class="order-product-image">
+                                        <img th:unless="${item.product.imageUrl}" src="https://via.placeholder.com/70x70" alt="Product" class="order-product-image">
+                                        <div class="order-product-details">
+                                            <div class="order-product-name" th:text="${item.product.name}">Product Name</div>
+                                            <div class="order-product-price" th:text="'$' + ${item.price}">$150.00</div>
+                                            <div class="order-product-quantity" th:text="'Quantity: ' + ${item.quantity}">Quantity: 2</div>
+                                        </div>
                                     </div>
                                 </div>
                                 
-                                <div class="order-product">
-                                    <img src="https://via.placeholder.com/70x70" alt="Product" class="order-product-image">
-                                    <div class="order-product-details">
-                                        <div class="order-product-name">Another Product</div>
-                                        <div class="order-product-price">200,000 đ</div>
-                                        <div class="order-product-quantity">Quantity: 1</div>
-                                    </div>
+                                <div class="order-footer">
+                                    <div class="order-total" th:text="'Total: $' + ${order.totalAmount}">Total: $500.00</div>
+                                    <a th:href="@{/bookings/{id}(id=${order.id})}" class="view-order-button">View Details</a>
                                 </div>
-                            </div>
-                            
-                            <div class="order-footer">
-                                <div class="order-total">Total: 500,000 đ</div>
-                                <a href="#" class="view-order-button">View Details</a>
                             </div>
                         </div>
-                        
-                        <div class="order-card">
-                            <div class="order-header d-flex justify-content-between align-items-center">
-                                <div>
-                                    <div class="order-id">Order #ORD123457</div>
-                                    <div class="order-date">Placed on 10 Apr 2023</div>
-                                </div>
-                                <div class="order-status status-delivered">Delivered</div>
-                            </div>
-                            
-                            <div class="order-body">
-                                <div class="order-product">
-                                    <img src="https://via.placeholder.com/70x70" alt="Product" class="order-product-image">
-                                    <div class="order-product-details">
-                                        <div class="order-product-name">Third Product</div>
-                                        <div class="order-product-price">350,000 đ</div>
-                                        <div class="order-product-quantity">Quantity: 1</div>
-                                    </div>
-                                </div>
-                            </div>
-                            
-                            <div class="order-footer">
-                                <div class="order-total">Total: 350,000 đ</div>
-                                <a href="#" class="view-order-button">View Details</a>
-                            </div>
-                        </div>
-                        -->
                     </div>
                 </div>
             </div>

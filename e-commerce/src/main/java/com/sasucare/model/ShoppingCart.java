@@ -17,6 +17,7 @@ public class ShoppingCart implements Serializable {
     
     private static final long serialVersionUID = 1L;
     private final Map<Long, CartItem> items = new HashMap<>();
+    private User user;
 
     public void addProduct(Product product, int quantityToAdd) {
         if (items.containsKey(product.getId())) {
@@ -43,6 +44,18 @@ public class ShoppingCart implements Serializable {
     public ArrayList<CartItem> getItems() {
         return new ArrayList<>(items.values());
     }
+    
+    /**
+     * Calculate the total price of all items in the cart
+     * @return The total price as BigDecimal
+     */
+    public BigDecimal getTotal() {
+        BigDecimal total = BigDecimal.ZERO;
+        for (CartItem item : items.values()) {
+            total = total.add(item.getTotalPrice());
+        }
+        return total;
+    }
 
     public BigDecimal getTotalPrice() {
         BigDecimal total = BigDecimal.ZERO;
@@ -52,15 +65,27 @@ public class ShoppingCart implements Serializable {
         return total;
     }
     
+    public int getItemCount() {
+        int count = 0;
+        for (CartItem item : items.values()) {
+            count += item.getQuantity();
+        }
+        return count;
+    }
+    
+    public User getUser() {
+        return user;
+    }
+    
+    public void setUser(User user) {
+        this.user = user;
+    }
+    
     public void clear() {
         items.clear();
     }
     
     public boolean isEmpty() {
         return items.isEmpty();
-    }
-    
-    public int getItemCount() {
-        return items.size();
     }
 }
