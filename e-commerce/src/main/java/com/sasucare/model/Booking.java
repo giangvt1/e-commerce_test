@@ -66,6 +66,9 @@ public class Booking {
     @Column(name = "completed_at")
     private LocalDateTime completedAt;
     
+    @Column(name = "cancelled_at")
+    private LocalDateTime cancelledAt;
+    
     // Helper method to generate a random booking number
     public void generateBookingNumber() {
         String timestamp = String.valueOf(System.currentTimeMillis());

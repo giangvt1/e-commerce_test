@@ -1,5 +1,6 @@
 package com.sasucare.controller;
 
+import com.sasucare.exception.ConcurrentOrderException;
 import com.sasucare.model.*;
 import com.sasucare.service.AddressService;
 import com.sasucare.service.BookingService;
@@ -14,7 +15,9 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.web.servlet.mvc.support.RedirectAttributes;
 
 import java.util.List;
+import java.util.Map;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Controller
 @RequestMapping("/bookings")
@@ -83,12 +86,10 @@ public class CustomerBookingController {
             return "redirect:/cart";
         }
         
-        // Check if all products are from same seller
-        if (cart.getItems().stream().map(item -> item.getProduct().getSeller().getId()).distinct().count() > 1) {
-            redirectAttributes.addFlashAttribute("errorMessage", 
-                "Your cart contains products from multiple sellers. Please create separate bookings for each seller.");
-            return "redirect:/cart";
-        }
+        // Group items by seller for display
+        Map<User, List<CartItem>> itemsBySeller = cart.getItems().stream()
+                .collect(Collectors.groupingBy(item -> item.getProduct().getSeller()));
+        model.addAttribute("itemsBySeller", itemsBySeller);
         
         List<Address> addresses = addressService.findByUser(user);
         model.addAttribute("addresses", addresses);
@@ -150,10 +151,37 @@ public class CustomerBookingController {
         }
         
         try {
-            Booking booking = bookingService.createBookingFromCart(user, address, specialInstructions, cart);
-            redirectAttributes.addFlashAttribute("successMessage", 
-                "Booking created successfully! Your booking number is: " + booking.getBookingNumber());
-            return "redirect:/bookings/" + booking.getId();
+            List<Booking> bookings = bookingService.createBookingsFromCart(user, address, specialInstructions, cart);
+            
+            if (bookings.isEmpty()) {
+                redirectAttributes.addFlashAttribute("errorMessage", "Failed to create any bookings. Please check your cart and try again.");
+                return "redirect:/cart";
+            } else if (bookings.size() == 1) {
+                // Single booking created
+                Booking booking = bookings.get(0);
+                redirectAttributes.addFlashAttribute("successMessage", 
+                    "Booking created successfully! Your booking number is: " + booking.getBookingNumber());
+                return "redirect:/bookings/" + booking.getId();
+            } else {
+                // Multiple bookings created (one per seller)
+                StringBuilder message = new StringBuilder("Multiple bookings created successfully! Your booking numbers are: ");
+                for (int i = 0; i < bookings.size(); i++) {
+                    message.append(bookings.get(i).getBookingNumber());
+                    if (i < bookings.size() - 1) {
+                        message.append(", ");
+                    }
+                }
+                redirectAttributes.addFlashAttribute("successMessage", message.toString());
+                return "redirect:/bookings";
+            }
+        } catch (ConcurrentOrderException e) {
+            // Handle the case where another user ordered the same product
+            redirectAttributes.addFlashAttribute("errorMessage", 
+                "Stock changed while processing your order: " + e.getMessage() + 
+                ". Please review your cart and try again.");
+            // Refresh the cart to show updated stock levels
+            shoppingCartService.refreshCartItems(user);
+            return "redirect:/cart";
         } catch (Exception e) {
             redirectAttributes.addFlashAttribute("errorMessage", "Error creating booking: " + e.getMessage());
             return "redirect:/bookings/create";
