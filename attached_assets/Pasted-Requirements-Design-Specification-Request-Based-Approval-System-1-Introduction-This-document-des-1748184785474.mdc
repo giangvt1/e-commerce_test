@@ -1,0 +1,246 @@
+Requirements Design Specification: Request-Based Approval System
+
+1. Introduction
+
+This document describes the requirements and high-level design for a four-level request-approval system. The workflow advances a request through the following roles:
+
+Staff
+
+Manager
+
+Director
+
+CEO
+
+Each request includes a category and a free-form reason. Images are optional (not in initial phase). Approvers can approve or reject; approvals move requests up, rejections move them back.
+
+2. Purpose and Scope
+
+Purpose: Provide clear requirements and design guidance for implementing a robust, extensible approval workflow.
+
+Scope:
+
+Creation and submission of requests by Staff
+
+Multi-level review and approval
+
+Status tracking and notifications
+
+Audit trail of decisions
+
+Role-based access control
+
+Excluded: image handling (deferred), integrations (e.g. email), reporting dashboard.
+
+3. Stakeholders
+
+Staff: Submit requests, view status
+
+Manager/Director/CEO: Review, approve, or reject requests
+
+System Administrator: Configure categories, manage users and roles
+
+Business Owner: Ensures workflow meets policy requirements
+
+4. Functional Requirements
+
+ID
+
+Description
+
+Priority
+
+FR-01
+
+Staff can create a request: select category, enter reason text.
+
+High
+
+FR-02
+
+Staff can view a list of their own requests and see current status.
+
+High
+
+FR-03
+
+Manager sees all requests in "Pending Manager" state.
+
+High
+
+FR-04
+
+Manager can approve or reject; provide optional comments.
+
+High
+
+FR-05
+
+Rejected requests return to Staff with "Rejected_Manager" status.
+
+High
+
+FR-06
+
+Director sees requests in "Pending Director" only after Manager.
+
+High
+
+FR-07
+
+Director can approve/reject with comments; rejections return to Manager.
+
+High
+
+FR-08
+
+CEO sees requests in "Pending CEO" after Director approval.
+
+High
+
+FR-09
+
+CEO can approve final or reject to Director with comments.
+
+High
+
+FR-10
+
+System records each action in an audit log with timestamp and notes.
+
+Medium
+
+FR-11
+
+Role-based access control: only designated roles may perform actions.
+
+High
+
+FR-12
+
+System provides RESTful APIs for all operations.
+
+Medium
+
+5. Non-Functional Requirements
+
+NFR-01 Security: All endpoints require authentication; role-based authorization.
+
+NFR-02 Performance: Listing and status queries must return within 500ms under typical load.
+
+NFR-03 Scalability: Design for eventual addition of more approval levels.
+
+NFR-04 Usability: Simple, intuitive interfaces with clear status indicators.
+
+NFR-05 Auditability: Immutable audit log stored in relational database.
+
+6. High-Level Data Model
+
+-- Users and Roles
+CREATE TABLE User (
+  id BIGINT PRIMARY KEY,
+  name VARCHAR(100) NOT NULL,
+  email VARCHAR(150) UNIQUE NOT NULL,
+  role ENUM('Staff','Manager','Director','CEO') NOT NULL
+);
+
+-- Requests
+CREATE TABLE Request (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  creator_id BIGINT NOT NULL REFERENCES User(id),
+  category VARCHAR(50) NOT NULL,
+  reason TEXT NOT NULL,
+  status ENUM(
+    'Pending_Manager',
+    'Rejected_Manager',
+    'Pending_Director',
+    'Rejected_Director',
+    'Pending_CEO',
+    'Rejected_CEO',
+    'Approved'
+  ) NOT NULL DEFAULT 'Pending_Manager',
+  created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+  updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Approval History
+CREATE TABLE ApprovalHistory (
+  id BIGINT PRIMARY KEY AUTO_INCREMENT,
+  request_id BIGINT NOT NULL REFERENCES Request(id),
+  approver_id BIGINT NOT NULL REFERENCES User(id),
+  action ENUM('Approve','Reject') NOT NULL,
+  comments TEXT,
+  action_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+);
+
+7. Workflow Diagram
+
+[Staff creates Request]
+        |
+        v
+[Pending_Manager] --Approve--> [Pending_Director]
+        | Reject                      |
+        v                             v
+[Rejected_Manager]              [Pending_Director] --Approve--> [Pending_CEO]
+                                             | Reject                    |
+                                             v                           v
+                                  [Rejected_Director]           [Pending_CEO] --Approve--> [Approved]
+                                                                        | Reject
+                                                                        v
+                                                                 [Rejected_CEO]
+
+8. API Endpoints
+
+Authentication
+
+POST /auth/login – authenticate, return JWT
+
+Requests
+
+POST /requests – create (Staff only)
+
+GET /requests?filter= – list user’s or role’s pending requests
+
+GET /requests/{id} – get details + history
+
+Approval Actions
+
+POST /requests/{id}/approve – approve (Manager/Director/CEO)
+
+Body: { comments?: string }\
+
+POST /requests/{id}/reject – reject
+
+Body: { comments: string }\
+
+Responses return updated status and history.
+
+9. User Interfaces
+
+Staff Portal
+
+Button: "New Request"
+
+Table: My Requests (columns: ID, Category, Created At, Status)
+
+Approver Dashboard
+
+Filter: "Pending for Me"
+
+List: clickable rows to detail view
+
+Detail: reason text, history log, Approve/Reject buttons + comments
+
+xxxxxx10. Next Steps
+
+Review and finalize categories list.
+
+Select technology stack (e.g., Spring Boot + React).
+
+Define authentication mechanism.
+
+Develop wireframes and prototypes.
+
+Sprint planning and assignment.
+
+End of Specification
