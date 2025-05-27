@@ -1,5 +1,6 @@
 package com.retailonboardpro.controller;
 
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.GetMapping;
 
@@ -7,7 +8,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 public class HomeController {
     
     @GetMapping("/")
-    public String home() {
+    public String homepage() {
+        return "homepage";
+    }
+    
+    @GetMapping("/index")
+    public String index() {
         return "index";
     }
     
@@ -16,13 +22,9 @@ public class HomeController {
         return "login";
     }
     
-    @GetMapping("/register")
-    public String register() {
-        return "register";
-    }
-    
-    @GetMapping("/dashboard")
-    public String dashboard() {
-        return "dashboard";
+    @GetMapping("/home")
+    @PreAuthorize("hasAnyRole('STAFF', 'MANAGER', 'DIRECTOR', 'CEO')")
+    public String home() {
+        return "home";
     }
 } 

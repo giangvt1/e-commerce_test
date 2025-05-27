@@ -151,12 +151,22 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/requests-view">
-                            <i class="bi bi-list-check nav-icon"></i> Requests
+                            <i class="bi bi-list-check nav-icon"></i> Training Requests
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('STAFF')">
                         <a class="nav-link" href="/requests-view/create">
                             <i class="bi bi-plus-square nav-icon"></i> Create New Request
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('STAFF')">
+                        <a class="nav-link" href="/profile/role-requests">
+                            <i class="bi bi-person-gear nav-icon"></i> Role Change Requests
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('CEO') or hasRole('DIRECTOR')">
+                        <a class="nav-link" href="/admin/role-requests">
+                            <i class="bi bi-people-fill nav-icon"></i> Approve Role Changes
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('CEO')">
@@ -194,7 +204,7 @@
                             <div class="status-icon pending-icon">
                                 <i class="bi bi-clock"></i>
                             </div>
-                            <div class="status-count">0</div>
+                            <div class="status-count" th:text="${stats.pending}">0</div>
                             <h5>Pending</h5>
                             <p class="text-muted mb-0">Requests awaiting approval</p>
                         </div>
@@ -204,7 +214,7 @@
                             <div class="status-icon approved-icon">
                                 <i class="bi bi-check-circle"></i>
                             </div>
-                            <div class="status-count">0</div>
+                            <div class="status-count" th:text="${stats.approved}">0</div>
                             <h5>Approved</h5>
                             <p class="text-muted mb-0">Requests that have been approved</p>
                         </div>
@@ -214,26 +224,81 @@
                             <div class="status-icon rejected-icon">
                                 <i class="bi bi-x-circle"></i>
                             </div>
-                            <div class="status-count">0</div>
+                            <div class="status-count" th:text="${stats.rejected}">0</div>
                             <h5>Rejected</h5>
                             <p class="text-muted mb-0">Requests that have been rejected</p>
                         </div>
                     </div>
                 </div>
                 
-                <!-- Recent Requests -->
+                <!-- Info about system features -->
+                <div class="alert alert-info mb-4">
+                    <h6><i class="bi bi-info-circle me-2"></i>Về hệ thống RetailOnboardPro</h6>
+                    <div class="row">
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Chức năng chính:</strong></p>
+                            <p class="mb-1">• <strong>Training Requests</strong>: Gửi và phê duyệt yêu cầu đào tạo</p>
+                            <p class="mb-1">• Quy trình phê duyệt nhiều cấp (STAFF → MANAGER → DIRECTOR → CEO)</p>
+                        </div>
+                        <div class="col-md-6">
+                            <p class="mb-1"><strong>Chức năng phụ:</strong></p>
+                            <p class="mb-1">• <strong>Role Requests</strong>: Yêu cầu nâng cấp tài khoản/vai trò</p>
+                            <p class="mb-0">• Quản lý người dùng và phân quyền</p>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Recent Training Requests -->
                 <div class="card mb-4">
                     <div class="card-header d-flex justify-content-between align-items-center" style="background-color: var(--primary-color); color: white;">
-                        <h5 class="mb-0">Recent Requests</h5>
-                        <a href="/requests-view" class="btn btn-sm btn-light">View All</a>
+                        <h5 class="mb-0">Recent Training Requests (Core Feature)</h5>
+                        <div>
+                            <a sec:authorize="hasRole('STAFF')" href="/requests-view/create" class="btn btn-sm btn-light me-2">Create New</a>
+                            <a href="/requests-view" class="btn btn-sm btn-light">View All</a>
+                        </div>
                     </div>
                     <div class="card-body">
-                        <div class="text-center py-5">
-                            <i class="bi bi-inbox" style="font-size: 3rem; color: #ccc;"></i>
-                            <p class="mt-3 text-muted">No requests found. Start by creating a new request.</p>
+                        <div th:if="${#lists.isEmpty(recentRequests)}" class="text-center py-5">
+                            <i class="bi bi-clipboard-check" style="font-size: 3rem; color: #ccc;"></i>
+                            <p class="mt-3 text-muted">No recent training requests found.</p>
                             <a sec:authorize="hasRole('STAFF')" href="/requests-view/create" class="btn btn-primary mt-2">
-                                <i class="bi bi-plus"></i> Create New Request
+                                <i class="bi bi-plus"></i> Create Training Request
                             </a>
+                        </div>
+                        
+                        <div th:if="${!#lists.isEmpty(recentRequests)}" class="row">
+                            <div th:each="request : ${recentRequests}" class="col-12 mb-3">
+                                <div class="card border-start-0" th:classappend="'border-start border-start-4 ' + (${request.status.startsWith('Pending')} ? 'border-warning' : (${request.status == 'Approved'} ? 'border-success' : 'border-danger'))">
+                                    <div class="card-body">
+                                        <div class="d-flex justify-content-between align-items-start">
+                                            <div class="flex-grow-1">
+                                                <h6 class="card-title mb-1">
+                                                    <span th:text="${request.creator.name}">Creator Name</span> 
+                                                    → <span th:text="${request.category}">Category</span>
+                                                </h6>
+                                                <p class="card-text text-muted mb-2" th:text="${#strings.abbreviate(request.reason, 100)}">Request reason...</p>
+                                                <small class="text-muted">
+                                                    <i class="bi bi-calendar"></i> 
+                                                    <span th:text="${#temporals.format(request.createdAt, 'dd/MM/yyyy HH:mm')}">Date</span>
+                                                    | <i class="bi bi-person"></i> 
+                                                    <span th:text="${request.creator.role}">Role</span>
+                                                </small>
+                                            </div>
+                                            <div class="d-flex align-items-center">
+                                                <span class="badge me-2" th:classappend="${request.status.startsWith('Pending')} ? 'bg-warning text-dark' : (${request.status == 'Approved'} ? 'bg-success' : 'bg-danger')" th:text="${request.status}">Status</span>
+                                                
+                                                <!-- Action buttons based on role and status -->
+                                                <div class="btn-group">
+                                                    <a th:href="@{/requests-view/{id}(id=${request.id})}" 
+                                                       class="btn btn-sm btn-outline-primary">
+                                                        <i class="bi bi-eye"></i> View
+                                                    </a>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>

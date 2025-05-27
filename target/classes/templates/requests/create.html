@@ -111,12 +111,22 @@
                     </li>
                     <li class="nav-item">
                         <a class="nav-link" href="/requests-view">
-                            <i class="bi bi-list-check nav-icon"></i> Requests
+                            <i class="bi bi-list-check nav-icon"></i> Training Requests
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('STAFF')">
                         <a class="nav-link active" href="/requests-view/create">
                             <i class="bi bi-plus-square nav-icon"></i> Create New Request
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('STAFF')">
+                        <a class="nav-link" href="/profile/role-requests">
+                            <i class="bi bi-person-gear nav-icon"></i> Role Change Requests
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('CEO') or hasRole('DIRECTOR')">
+                        <a class="nav-link" href="/admin/role-requests">
+                            <i class="bi bi-people-fill nav-icon"></i> Approve Role Changes
                         </a>
                     </li>
                     <li class="nav-item" sec:authorize="hasRole('CEO')">

@@ -57,8 +57,12 @@ public class WebSecurityConfig {
 
     @Bean
     public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
-        http.csrf(csrf -> csrf.disable())
+        http
             .cors(cors -> cors.configurationSource(corsConfigurationSource()))
+            .csrf(csrf -> csrf
+                // Chỉ vô hiệu hóa CSRF cho API endpoints
+                .ignoringRequestMatchers("/api/**", "/auth/**")
+            )
             .authorizeHttpRequests(auth -> auth
                 // Cho phép truy cập vào tài nguyên tĩnh và trang đăng nhập
                 .requestMatchers("/css/**", "/js/**", "/images/**", "/webjars/**").permitAll()

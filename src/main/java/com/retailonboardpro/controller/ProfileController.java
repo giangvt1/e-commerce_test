@@ -78,4 +78,12 @@ public class ProfileController {
         
         return "redirect:/profile";
     }
+    
+    /**
+     * View for managing role requests
+     */
+    @GetMapping("/role-requests")
+    public String roleRequests() {
+        return "profile/role-requests";
+    }
 } 

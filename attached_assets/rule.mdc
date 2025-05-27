@@ -1,5 +1,150 @@
 ---
-description:
-globs:
+description: 
+globs: 
 alwaysApply: false
 ---
+Spring Boot Java Best Practices
+
+Context
+
+# Request-Based Approval System Guidelines
+
+## Context
+- Apply this rule when generating code, explanations, or guidance for the request-based approval system.
+- No specific prerequisites or conditions are required.
+- Ensures adherence to the specified workflow, data model, APIs, and non-functional requirements.
+
+## Critical Rules
+-Only English
+- Implement the four-level approval workflow: Staff → Manager → Director → CEO; rejections return to the previous level.
+- Use the data model:
+  - `User`: `id`, `name`, `email`, `role` (enum: 'Staff', 'Manager', 'Director', 'CEO').
+  - `Request`: `id`, `creator_id`, `category`, `reason`, `status`, `created_at`, `updated_at`.
+  - `ApprovalHistory`: `id`, `request_id`, `approver_id`, `action`, `comments`, `action_at`.
+- Implement API endpoints:
+  - `POST /auth/login` (JWT authentication).
+  - `POST /requests` (Staff only).
+  - `GET /requests?filter=` (list by user/role).
+  - `GET /requests/{id}` (details + history).
+  - `POST /requests/{id}/approve` (Manager/Director/CEO).
+  - `POST /requests/{id}/reject` (requires comments).
+- Enforce authentication and role-based authorization on all endpoints.
+- Meet non-functional requirements:
+  - Security: authenticated endpoints, role-based access.
+  - Performance: queries return within 500ms.
+  - Scalability: support additional approval levels.
+  - Usability: intuitive interfaces.
+  - Auditability: immutable audit log in a relational database.
+- Use status enums: `'Pending_Manager'`, `'Rejected_Manager'`, `'Pending_Director'`, `'Rejected_Director'`, `'Pending_CEO'`, `'Rejected_CEO'`, `'Approved'`.
+- Restrict actions to designated roles (e.g., only Managers approve/reject at their level).
+- Exclude image handling (deferred).
+
+## Examples
+<example>
+  Valid: AI generates `POST /requests` code for Staff to create a request with `category`, `reason`, and initial status `'Pending_Manager'`.
+</example>
+
+<example type="invalid">
+  Invalid: AI suggests a workflow skipping Manager, sending requests from Staff directly to Director.
+</example>
+
+
+
+
+Critical Rules
+
+
+
+
+
+Use layered architecture: controller, service, repository, entity packages.
+
+
+
+Implement RESTful APIs with proper HTTP methods and status codes (e.g., POST /requests returns 201).
+
+
+
+Secure endpoints with Spring Security: JWT authentication, role-based authorization.
+
+
+
+Use @RestController for APIs, @Service for business logic, @Repository for data access.
+
+
+
+Configure application.properties for database (e.g., H2, MySQL) and server settings.
+
+
+
+Use @Entity with JPA annotations for database models; map relationships correctly (e.g., @ManyToOne).
+
+
+
+Handle exceptions with @ControllerAdvice and return consistent error responses.
+
+
+
+Include logging with SLF4J/Logback; log key actions (e.g., request creation, approval actions).
+
+
+
+Write unit tests with JUnit and Mockito for services and controllers.
+
+
+
+Avoid hardcoding; use @Value or configuration classes for constants.
+
+
+
+Follow Java naming conventions: camelCase for methods/variables, PascalCase for classes.
+
+
+
+For request-based approval system:
+
+
+
+
+
+Implement workflow: Staff → Manager → Director → CEO.
+
+
+
+Use enums for statuses (e.g., Pending_Manager, Approved).
+
+
+
+Log actions in ApprovalHistory table.
+
+Examples
+
+ Valid: Controller for creating a request in the approval system: ```java @RestController @RequestMapping("/requests") public class RequestController { private final RequestService service; 
+
+  public RequestController(RequestService service) {
+      this.service = service;
+  }
+
+  @PostMapping
+  @ResponseStatus(HttpStatus.CREATED)
+  public RequestDTO create(@RequestBody RequestDTO request, @AuthenticationPrincipal User user) {
+      return service.createRequest(request, user);
+  }
+
+}
+
+</example>
+
+<example type="invalid">
+Invalid: Controller with business logic and no security:
+```java
+@RestController
+public class BadController {
+    @PostMapping("/requests")
+    public String createRequest(@RequestBody Map<String, String> data) {
+        // Direct DB access and logic
+        saveToDatabase(data.get("reason"));
+        return "Saved";
+    }
+
+}

@@ -1,0 +1,402 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/spring-security">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Role Change Requests - RetailOnboardPro</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.1/font/bootstrap-icons.css">
+    <style>
+        :root {
+            --primary-color: #1e88e5;
+            --primary-light: #bbdefb;
+            --primary-dark: #0d47a1;
+        }
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background-color: #f8f9fa;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+        .main-content {
+            flex: 1;
+        }
+        .sidebar {
+            background-color: #fff;
+            border-right: 1px solid #e0e0e0;
+            height: 100%;
+            min-height: calc(100vh - 56px);
+        }
+        .nav-pills .nav-link.active {
+            background-color: var(--primary-color);
+        }
+        .nav-pills .nav-link {
+            color: #333;
+        }
+        .nav-pills .nav-link:hover:not(.active) {
+            background-color: #f1f1f1;
+        }
+        .nav-icon {
+            margin-right: 10px;
+            color: var(--primary-color);
+        }
+        .card {
+            border-radius: 8px;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.05);
+            border: none;
+        }
+        .btn-primary {
+            background-color: var(--primary-color);
+            border-color: var(--primary-color);
+        }
+        .btn-primary:hover {
+            background-color: var(--primary-dark);
+            border-color: var(--primary-dark);
+        }
+        .navbar {
+            background-color: var(--primary-dark) !important;
+        }
+        .status-badge {
+            font-size: 0.8rem;
+            padding: 0.4rem 0.8rem;
+            border-radius: 20px;
+        }
+        .status-pending { background-color: #fff3cd; color: #856404; }
+        .status-approved { background-color: #d1edff; color: #0c5460; }
+        .status-rejected { background-color: #f8d7da; color: #721c24; }
+    </style>
+</head>
+<body>
+    <!-- Navigation Bar -->
+    <nav class="navbar navbar-expand-lg navbar-dark bg-primary">
+        <div class="container-fluid">
+            <a class="navbar-brand" href="/dashboard">RetailOnboardPro</a>
+            <button class="navbar-toggler" type="button" data-bs-toggle="collapse" data-bs-target="#navbarNav">
+                <span class="navbar-toggler-icon"></span>
+            </button>
+            <div class="collapse navbar-collapse" id="navbarNav">
+                <ul class="navbar-nav ms-auto">
+                    <li class="nav-item dropdown">
+                        <a class="nav-link dropdown-toggle" href="#" id="navbarDropdown" role="button" data-bs-toggle="dropdown">
+                            <span sec:authentication="name">Username</span>
+                        </a>
+                        <ul class="dropdown-menu dropdown-menu-end">
+                            <li><a class="dropdown-item" href="/profile">Profile</a></li>
+                            <li><hr class="dropdown-divider"></li>
+                            <li>
+                                <form th:action="@{/logout}" method="post">
+                                    <button type="submit" class="dropdown-item">Logout</button>
+                                </form>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container-fluid main-content">
+        <div class="row">
+            <!-- Sidebar -->
+            <div class="col-md-3 col-lg-2 sidebar py-3">
+                <ul class="nav nav-pills flex-column">
+                    <li class="nav-item">
+                        <a class="nav-link" href="/dashboard">
+                            <i class="bi bi-speedometer2 nav-icon"></i> Dashboard
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/requests-view">
+                            <i class="bi bi-list-check nav-icon"></i> Training Requests
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('STAFF')">
+                        <a class="nav-link" href="/requests-view/create">
+                            <i class="bi bi-plus-square nav-icon"></i> Create New Request
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('STAFF')">
+                        <a class="nav-link active" href="/profile/role-requests">
+                            <i class="bi bi-person-gear nav-icon"></i> Role Change Requests
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('CEO') or hasRole('DIRECTOR')">
+                        <a class="nav-link" href="/admin/role-requests">
+                            <i class="bi bi-people-fill nav-icon"></i> Approve Role Changes
+                        </a>
+                    </li>
+                    <li class="nav-item" sec:authorize="hasRole('CEO')">
+                        <a class="nav-link" href="/users">
+                            <i class="bi bi-people nav-icon"></i> User Management
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="/profile">
+                            <i class="bi bi-person nav-icon"></i> Profile
+                        </a>
+                    </li>
+                    <li class="nav-item">
+                        <a class="nav-link" href="#" onclick="document.getElementById('logoutForm').submit(); return false;">
+                            <i class="bi bi-box-arrow-right nav-icon"></i> Logout
+                        </a>
+                        <form id="logoutForm" th:action="@{/logout}" method="post" style="display: none;"></form>
+                    </li>
+                </ul>
+            </div>
+
+            <!-- Main Content -->
+            <div class="col-md-9 col-lg-10 py-3">
+                <div class="p-4">
+                    <!-- Header -->
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <div>
+                            <h2 class="mb-1">Role Change Requests</h2>
+                            <p class="text-muted mb-0">Manage your role change requests</p>
+                        </div>
+                        <div>
+                            <span class="badge bg-primary me-2" sec:authentication="principal.role" th:text="'Current Role: ' + ${#authentication.principal.role}"></span>
+                        </div>
+                    </div>
+
+                    <!-- Alert Messages -->
+                    <div id="alertContainer"></div>
+
+                    <!-- Create Role Request Form (Only for Staff) -->
+                    <div sec:authorize="hasRole('STAFF')" class="card mb-4">
+                        <div class="card-header bg-primary text-white">
+                            <h5 class="mb-0">
+                                <i class="bi bi-plus-circle me-2"></i>Create New Role Change Request
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <form id="createRoleRequestForm">
+                                <div class="row">
+                                    <div class="col-md-6 mb-3">
+                                        <label for="requestedRole" class="form-label">Requested Role *</label>
+                                        <select class="form-select" id="requestedRole" name="requestedRole" required>
+                                            <option value="">Select role...</option>
+                                            <option value="Manager">Manager</option>
+                                            <option value="Director">Director</option>
+                                            <option value="CEO">CEO</option>
+                                        </select>
+                                    </div>
+                                </div>
+                                <div class="mb-3">
+                                    <label for="reason" class="form-label">Reason for Request *</label>
+                                    <textarea class="form-control" id="reason" name="reason" rows="4" 
+                                              placeholder="Please describe why you want to change your role..." 
+                                              minlength="10" maxlength="1000" required></textarea>
+                                    <div class="form-text">Minimum 10 characters, maximum 1000 characters</div>
+                                </div>
+                                <button type="submit" class="btn btn-primary" id="submitBtn">
+                                    <i class="bi bi-send me-2"></i>Submit Request
+                                </button>
+                            </form>
+                        </div>
+                    </div>
+
+                    <!-- Role Requests List -->
+                    <div class="card">
+                        <div class="card-header">
+                            <h5 class="mb-0">
+                                <i class="bi bi-list-ul me-2"></i>Your Role Requests
+                            </h5>
+                        </div>
+                        <div class="card-body">
+                            <div id="roleRequestsList">
+                                <div class="text-center py-4">
+                                    <div class="spinner-border text-primary" role="status">
+                                        <span class="visually-hidden">Loading...</span>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+    <script>
+        // API endpoints
+        const API_BASE = '/api/role-requests';
+        
+        // Load role requests on page load
+        document.addEventListener('DOMContentLoaded', function() {
+            loadRoleRequests();
+            checkCanCreateRequest();
+        });
+
+        // Create role request form submission
+        document.getElementById('createRoleRequestForm')?.addEventListener('submit', function(e) {
+            e.preventDefault();
+            createRoleRequest();
+        });
+
+        // Check if user can create role request
+        async function checkCanCreateRequest() {
+            try {
+                const response = await fetch(`${API_BASE}/can-create`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    if (!result.data.canCreate) {
+                        const form = document.getElementById('createRoleRequestForm');
+                        if (form) {
+                            form.style.display = 'none';
+                            showAlert('info', 'You already have a pending role change request or cannot create a new request.');
+                        }
+                    }
+                }
+            } catch (error) {
+                console.error('Error checking can create request:', error);
+            }
+        }
+
+        // Create new role request
+        async function createRoleRequest() {
+            const submitBtn = document.getElementById('submitBtn');
+            const originalText = submitBtn.innerHTML;
+            
+            try {
+                submitBtn.disabled = true;
+                submitBtn.innerHTML = '<i class="bi bi-arrow-clockwise fa-spin me-2"></i>Submitting...';
+                
+                const formData = new FormData(document.getElementById('createRoleRequestForm'));
+                const requestData = {
+                    requestedRole: formData.get('requestedRole'),
+                    reason: formData.get('reason')
+                };
+                
+                const response = await fetch(API_BASE, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(requestData)
+                });
+                
+                const result = await response.json();
+                
+                if (response.ok) {
+                    showAlert('success', result.message);
+                    document.getElementById('createRoleRequestForm').reset();
+                    loadRoleRequests();
+                    checkCanCreateRequest();
+                } else {
+                    showAlert('danger', result.message || 'An error occurred while creating the request');
+                }
+                
+            } catch (error) {
+                console.error('Error creating role request:', error);
+                showAlert('danger', 'An error occurred while submitting the request');
+            } finally {
+                submitBtn.disabled = false;
+                submitBtn.innerHTML = originalText;
+            }
+        }
+
+        // Load role requests
+        async function loadRoleRequests() {
+            try {
+                const response = await fetch(`${API_BASE}/my-requests`);
+                
+                if (response.ok) {
+                    const result = await response.json();
+                    displayRoleRequests(result.data);
+                } else {
+                    throw new Error('Failed to load role requests');
+                }
+                
+            } catch (error) {
+                console.error('Error loading role requests:', error);
+                document.getElementById('roleRequestsList').innerHTML = 
+                    '<div class="alert alert-danger">Unable to load request list</div>';
+            }
+        }
+
+        // Display role requests
+        function displayRoleRequests(requests) {
+            const container = document.getElementById('roleRequestsList');
+            
+            if (!requests || requests.length === 0) {
+                container.innerHTML = `
+                    <div class="text-center py-4">
+                        <i class="bi bi-inbox-fill" style="font-size: 3rem; color: #ccc;"></i>
+                        <p class="mt-3 text-muted">You don't have any role change requests.</p>
+                    </div>
+                `;
+                return;
+            }
+            
+            const statusBadges = {
+                'PENDING': 'bg-warning text-dark',
+                'APPROVED': 'bg-success',
+                'REJECTED': 'bg-danger'
+            };
+            
+            let html = '<div class="list-group">';
+            
+            requests.forEach(request => {
+                let statusClass = statusBadges[request.status] || 'bg-secondary';
+                let statusDisplay = request.status.charAt(0) + request.status.slice(1).toLowerCase();
+                
+                html += `
+                    <div class="list-group-item list-group-item-action">
+                        <div class="d-flex w-100 justify-content-between align-items-center">
+                            <h5 class="mb-1">Request to: ${request.requestedRole}</h5>
+                            <span class="badge ${statusClass}">${statusDisplay}</span>
+                        </div>
+                        <p class="mb-1">${request.reason}</p>
+                        <div class="d-flex justify-content-between align-items-center">
+                            <small class="text-muted">Created: ${formatDateTime(request.createdAt)}</small>
+                            ${request.updatedAt ? 
+                                `<small class="text-muted">Last updated: ${formatDateTime(request.updatedAt)}</small>` : ''}
+                        </div>
+                        ${request.reviewerComments ? 
+                            `<div class="mt-2 p-2 bg-light rounded">
+                                <small class="fw-bold">Reviewer Comments:</small>
+                                <p class="mb-0 small">${request.reviewerComments}</p>
+                             </div>` : ''}
+                    </div>
+                `;
+            });
+            
+            html += '</div>';
+            container.innerHTML = html;
+        }
+
+        // Utility functions
+        function formatDateTime(dateTimeString) {
+            return new Date(dateTimeString).toLocaleString('vi-VN');
+        }
+
+        // Show alert message
+        function showAlert(type, message) {
+            const alertContainer = document.getElementById('alertContainer');
+            const alertId = 'alert-' + Date.now();
+            
+            const alertHtml = `
+                <div id="${alertId}" class="alert alert-${type} alert-dismissible fade show" role="alert">
+                    ${message}
+                    <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                </div>
+            `;
+            
+            alertContainer.innerHTML += alertHtml;
+            
+            // Auto dismiss after 5 seconds
+            setTimeout(() => {
+                const alertElement = document.getElementById(alertId);
+                if (alertElement) {
+                    alertElement.classList.remove('show');
+                    setTimeout(() => alertElement.remove(), 150);
+                }
+            }, 5000);
+        }
+    </script>
+</body>
+</html> 

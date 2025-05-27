@@ -1,0 +1,8 @@
+Vietnamese to English Replacements:
+
+1. "Đang tải..." -> "Loading..."
+2. JavaScript messages in submitReview function
+3. openReviewModal function messages
+4. All alert messages
+
+Need to replace these in admin template JavaScript section. 

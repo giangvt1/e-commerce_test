@@ -44,33 +44,43 @@ mvn spring-boot:run
 Sau khi khởi động, ứng dụng sẽ tự động tạo các tài khoản:
 
 - **CEO**:
-  - Username: admin
-  - Password: 123
+  - Username: ceo2
+  - Password: thienthien
 
 - **Manager**:
-  - Username: manager
-  - Password: 123
+  - Username: Lightning
+  - Password: Lightning
 
 - **Director**:
-  - Username: director
-  - Password: 123
+  - Username: volamchimong
+  - Password: volamchimong
 
 - **Staff**:
-  - Username: staff
-  - Password: 123
+  - Username: thienthien
+  - Password: thienthien
 
 ## Chức năng chính
 
 ### Đăng nhập và Đăng ký
 - Đăng nhập vào hệ thống với tài khoản hiện có
-- Đăng ký tài khoản mới với các vai trò khác nhau
+- Đăng ký tài khoản mới - **tất cả tài khoản mới đều được gán vai trò Staff mặc định**
+- Xác thực mật khẩu tối thiểu 8 ký tự
+- Kiểm tra duy nhất email và username
 
-### Quản lý Yêu cầu
+### Quản lý Yêu cầu Đào tạo
 - Nhân viên (Staff) có thể tạo yêu cầu đào tạo mới
 - Xem danh sách yêu cầu theo quyền hạn
 - Xem chi tiết yêu cầu và lịch sử phê duyệt
 
-### Quy trình phê duyệt
+### Quản lý Yêu cầu Thay đổi Vai trò (Mới)
+- **Nhân viên (Staff) có thể yêu cầu thay đổi vai trò** lên Manager, Director, hoặc CEO
+- Chỉ cho phép một yêu cầu pending tại một thời điểm
+- Yêu cầu cần lý do tối thiểu 10 ký tự, tối đa 1000 ký tự
+- **CEO và Director có thể phê duyệt/từ chối yêu cầu thay đổi vai trò**
+- Khi được phê duyệt, vai trò của người dùng được cập nhật tự động
+- Ghi nhận lịch sử đầy đủ của tất cả các thay đổi
+
+### Quy trình phê duyệt Đào tạo
 - Quản lý (Manager) xem xét và phê duyệt/từ chối yêu cầu
 - Giám đốc (Director) xem xét và phê duyệt/từ chối yêu cầu đã được Manager phê duyệt
 - CEO xem xét và phê duyệt/từ chối cuối cùng yêu cầu đã được Director phê duyệt
